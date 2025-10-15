@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.navadeep.ChatApplication.domain.Lookup" table="lookups">
+
+        <id name="id" column="id" type="long">
+            <generator class="increment"/>
+        </id>
+
+        <property name="lookupName" column="lookup_name" type="string" not-null="true"/>
+
+        <property name="lookupCategory" column="lookup_category" type="string"
+                  not-null="true"/>
+
+        <property name="lookupCode" column="lookup_code" type="string" not-null="true"/>
+
+    </class>
+</hibernate-mapping>

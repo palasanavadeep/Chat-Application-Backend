@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <!-- Parent class: UserLite -->
+    <class name="com.navadeep.ChatApplication.domain.UserLite" table="users" discriminator-value="LITE">
+        <id name="id" column="id" type="long">
+            <generator class="increment"/>
+        </id>
+
+        <!-- Discriminator for inheritance -->
+        <discriminator column="user_type" type="string"/>
+
+        <!-- Properties from UserLite -->
+        <property name="username" column="username" type="string" not-null="true"/>
+        <property name="displayName" column="display_name" type="string"/>
+        <property name="status" column="status" type="boolean" not-null="true"/>
+        <property name="lastSeenAt" column="last_seen_at" type="java.time.LocalDateTime"/>
+
+        <!-- Many-to-one relationship with Attachment -->
+        <many-to-one name="profileImage" class="com.navadeep.ChatApplication.domain.Attachment"
+                     column="profile_image_id" />
+
+        <!-- Subclass: User -->
+        <subclass name="com.navadeep.ChatApplication.domain.User" discriminator-value="USER">
+            <!-- Properties specific to User -->
+            <property name="email" column="email" type="string" not-null="true"/>
+            <property name="password" column="password" type="string" not-null="true"/>
+            <property name="createdAt" column="created_at" type="java.time.LocalDateTime"/>
+        </subclass>
+    </class>
+</hibernate-mapping>

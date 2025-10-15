@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.navadeep.ChatApplication.domain.UserEvent" table="user_events">
+
+        <id name="id" column="id" type="long">
+            <generator class="increment"/>
+        </id>
+
+        <many-to-one name="user" class="com.navadeep.ChatApplication.domain.UserLite"
+                     column="user_id" lazy="proxy"/>
+
+        <many-to-one name="message" class="com.navadeep.ChatApplication.domain.Message"
+                     column="message_id" lazy="proxy"/>
+
+    </class>
+</hibernate-mapping>

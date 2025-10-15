@@ -1,0 +1,130 @@
+<!--<?xml version="1.0" encoding="UTF-8"?>-->
+<!--<beans xmlns="http://www.springframework.org/schema/beans"-->
+<!--       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"-->
+<!--       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">-->
+
+<!--</beans>-->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+       xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd
+           http://www.springframework.org/schema/context
+           https://www.springframework.org/schema/context/spring-context.xsd
+           http://cxf.apache.org/jaxrs
+           https://cxf.apache.org/schemas/jaxrs.xsd">
+
+    <context:component-scan base-package="com.navadeep.ChatApplication"/>
+
+    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="driverClassName" value="org.postgresql.Driver"/>
+        <property name="url" value="jdbc:postgresql://localhost:5432/chatAppDB"/>
+        <property name="username" value="postgres"/>
+        <property name="password" value="1234"/>
+    </bean>
+
+    <!-- Liquibase configuration -->
+    <bean id="liquibase" class="liquibase.integration.spring.SpringLiquibase">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="changeLog" value="classpath:database/changelog/db.changelog-master.xml"/>
+<!--        <property name="contexts" value="dev,prod"/>-->
+        <property name="defaultSchema" value="public"/> <!-- Optional: set for PostgreSQL -->
+    </bean>
+
+    <!-- Hibernate SessionFactory -->
+    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="mappingResources">
+            <list>
+                <value>hibernate/user.hbm.xml</value>
+                <value>hibernate/conversation.hbm.xml</value>
+                <value>hibernate/attachment.hbm.xml</value>
+                <value>hibernate/conversationParticipant.hbm.xml</value>
+                <value>hibernate/lookup.hbm.xml</value>
+                <value>hibernate/message.hbm.xml</value>
+                <value>hibernate/userEvent.hbm.xml</value>
+            </list>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop> <!-- Adjust for your DB -->
+                <prop key="hibernate.show_sql">false</prop> <!-- Set to true for debugging -->
+                <prop key="hibernate.format_sql">false</prop>
+<!--                <prop key="hibernate.hbm2ddl.auto">none</prop> -->
+<!--                <prop key="hibernate.connection.pool_size">10</prop> &lt;!&ndash; Tune for performance &ndash;&gt;-->
+            </props>
+        </property>
+    </bean>
+
+    <bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+<!--    Dao Impl-->
+    <bean id="attachmentDaoImpl" class="com.navadeep.ChatApplication.daoImpl.AttachmentDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean id="conversationDaoImpl" class="com.navadeep.ChatApplication.daoImpl.ConversationDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean id="conversationParticipantDaoImpl" class="com.navadeep.ChatApplication.daoImpl.ConversationParticipantDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean id="lookupDaoImpl" class="com.navadeep.ChatApplication.daoImpl.LookupDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean id="messageDaoImpl" class="com.navadeep.ChatApplication.daoImpl.MessageDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean id="userDaoImpl" class="com.navadeep.ChatApplication.daoImpl.UserDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean id="userEventDaoImpl" class="com.navadeep.ChatApplication.daoImpl.UserEventDaoImpl">
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+
+<!--    <bean id="lookup" class="com.navadeep.ChatApplication.domain.Lookup"/>-->
+
+    <!-- Hibernate SessionFactory -->
+<!--    <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">-->
+<!--        <property name="configLocation" value="classpath:hibernate.cfg.xml"/>-->
+<!--    </bean>-->
+
+    <!-- Transaction Manager -->
+<!--    <bean id="txManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">-->
+<!--        <property name="sessionFactory" ref="sessionFactory"/>-->
+<!--    </bean>-->
+
+    <!-- Enable annotation-driven transaction management -->
+<!--    <tx:annotation-driven transaction-manager="txManager"/>-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--    <bean id="helloService" class="com.navadeep.ChatApplication.service.HelloService"/>-->
+    <!-- Define the JAX-RS server endpoint -->
+<!--    <jaxrs:server id="helloControllerss" address="/">-->
+<!--        <jaxrs:serviceBeans>-->
+<!--            <bean class="com.navadeep.ChatApplication.controller.Hello"/>-->
+<!--        </jaxrs:serviceBeans>-->
+<!--    </jaxrs:server>-->
+
+
+
+</beans>

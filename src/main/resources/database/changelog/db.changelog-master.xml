@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- Include individual changelogs in dependency order -->
+    <include file="database/changelog/changelog-lookup.xml"/>
+    <include file="database/changelog/changelog-attachment.xml"/>
+    <include file="database/changelog/changelog-user.xml"/>
+    <include file="database/changelog/changelog-message.xml"/>
+    <include file="database/changelog/changelog-conversation.xml"/>
+    <include file="database/changelog/changelog-conversation-participant.xml"/>
+    <include file="database/changelog/changelog-user-event.xml"/>
+
+    <changeSet id="add_fk_constraint_to_message" author="navadeep">
+        <addForeignKeyConstraint baseTableName="messages"
+                                 baseColumnNames="conversation_id"
+                                 constraintName="fk_messages_conversation"
+                                 referencedTableName="conversations"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

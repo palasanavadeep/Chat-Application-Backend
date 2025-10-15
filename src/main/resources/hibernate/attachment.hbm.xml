@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.navadeep.ChatApplication.domain.Attachment" table="attachments">
+
+        <id name="id" column="id" type="long">
+            <generator class="increment"/>
+        </id>
+
+        <many-to-one name="attachmentType" class="com.navadeep.ChatApplication.domain.Lookup"
+                     column="attachment_type_id" not-null="true"  lazy="proxy"/>
+
+        <property name="file" column="file" type="binary" not-null="true"/>
+
+    </class>
+</hibernate-mapping>

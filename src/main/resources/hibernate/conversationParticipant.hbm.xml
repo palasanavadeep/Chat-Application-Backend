@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.navadeep.ChatApplication.domain.ConversationParticipant" table="conversation_participants">
+
+        <id name="id" column="id" type="long">
+            <generator class="increment"/>
+        </id>
+
+        <many-to-one name="conversation" class="com.navadeep.ChatApplication.domain.Conversation"
+                     column="conversation_id" not-null="true" lazy="proxy" insert="false" update="false"/>
+
+        <many-to-one name="user" class="com.navadeep.ChatApplication.domain.UserLite"
+                     column="user_id" not-null="true" lazy="proxy"/>
+
+        <many-to-one name="role" class="com.navadeep.ChatApplication.domain.Lookup"
+                     column="role_id" not-null="true" lazy="proxy"/>
+
+        <property name="joinedAt" column="joined_at" type="java.time.LocalDateTime"
+                  not-null="true"/>
+
+        <property name="leftAt" column="left_at" type="java.time.LocalDateTime"/>
+
+        <property name="isMuted" column="is_muted" type="boolean" not-null="true"/>
+
+        <property name="isPinned" column="is_pinned" type="boolean" not-null="true"/>
+
+        <many-to-one name="lastReadMessage" class="com.navadeep.ChatApplication.domain.Message"
+                     column="last_read_message_id" lazy="proxy"/>
+
+        <property name="lastReadAt" column="last_read_at" type="java.time.LocalDateTime"/>
+
+    </class>
+</hibernate-mapping>

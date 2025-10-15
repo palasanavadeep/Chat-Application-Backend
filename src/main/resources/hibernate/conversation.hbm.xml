@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE hibernate-mapping PUBLIC
+                "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+    <class name="com.navadeep.ChatApplication.domain.Conversation" table="conversations">
+
+        <id name="id" column="id" type="long">
+            <generator class="native"/>
+        </id>
+
+        <many-to-one name="type" class="com.navadeep.ChatApplication.domain.Lookup"
+                     column="type_id" not-null="true" lazy="proxy"/>
+
+        <property name="name" column="name" type="string"/>
+
+        <property name="description" column="description" type="string"/>
+
+        <many-to-one name="conversationImage" class="com.navadeep.ChatApplication.domain.Attachment"
+                     column="conversation_image_id" lazy="proxy"/>
+
+        <many-to-one name="createdBy" class="com.navadeep.ChatApplication.domain.UserLite"
+                     column="created_by_id" not-null="true" lazy="proxy"/>
+
+        <property name="createdAt" column="created_at" type="java.time.LocalDateTime"
+                  not-null="true"/>
+
+        <list name="members" cascade="all-delete-orphan" fetch="select" lazy="true">
+            <key column="conversation_id" not-null="true"/>
+            <list-index column="member_order"/>
+            <one-to-many class="com.navadeep.ChatApplication.domain.ConversationParticipant"/>
+        </list>
+
+        <many-to-one name="lastMessage" class="com.navadeep.ChatApplication.domain.Message"
+                    column="last_message_id" lazy="proxy"/>
+
+    </class>
+</hibernate-mapping>
