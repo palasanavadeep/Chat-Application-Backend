@@ -7,27 +7,30 @@
     <class name="com.navadeep.ChatApplication.domain.Message" table="messages">
 
         <id name="id" column="id" type="long">
-            <generator class="increment"/>
+            <generator class="native">
+                <param name="sequence_name">messages_id_seq</param>
+                <param name="increment_size">1</param>
+            </generator>
         </id>
+        <property name="createdAt" column="created_at" type="java.time.LocalDateTime"
+                  not-null="true"/>
 
         <many-to-one name="sender" class="com.navadeep.ChatApplication.domain.UserLite"
                      column="sender_id" not-null="true" lazy="proxy"/>
 
-        <many-to-one name="conversation" class="com.navadeep.ChatApplication.domain.Conversation"
-                     column="conversation_id" not-null="true" lazy="proxy"/>
-
-        <property name="body" column="body" type="string" not-null="true"/>
-
-        <one-to-one name="messageAttachment" class="com.navadeep.ChatApplication.domain.Attachment"
-                      lazy="proxy" />
-
-        <property name="createdAt" column="created_at" type="java.time.LocalDateTime"
+        <property name="conversationId"
+                  column="conversation_id"
+                  type="long"
                   not-null="true"/>
+
+        <property name="body" column="body" type="string"/>
+
+        <one-to-one name="attachment"
+                    class="com.navadeep.ChatApplication.domain.Attachment"
+                    lazy="proxy" />
+
 
         <property name="editedAt" column="edited_at" type="java.time.LocalDateTime"/>
-
-        <property name="deleteForEveryone" column="delete_for_everyone" type="boolean"
-                  not-null="true"/>
 
     </class>
 </hibernate-mapping>

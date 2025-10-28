@@ -1,25 +1,28 @@
 package com.navadeep.ChatApplication.domain;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class UserLite {
-    private long id;
+//@JsonInclude(JsonInclude.Include.NON_NULL)
+@XmlRootElement(name = "userLite")
+public class UserLite extends BaseDate {
     private String username;
     private String displayName;
     private Attachment profileImage;
     private boolean status;
     private LocalDateTime lastSeenAt;
 
-    public UserLite() {}
-    public long getId() {
-        return id;
+    public UserLite(String username, String displayName, Attachment profileImage, boolean status, LocalDateTime lastSeenAt) {
+        this.username = username;
+        this.displayName = displayName;
+        this.profileImage = profileImage;
+        this.status = status;
+        this.lastSeenAt = lastSeenAt;
     }
 
-    public void setId(long id) {
-        this.id = id;
-    }
+    public UserLite() {}
 
     public String getUsername() {
         return username;
@@ -59,5 +62,16 @@ public class UserLite {
 
     public void setLastSeenAt(LocalDateTime lastSeenAt) {
         this.lastSeenAt = lastSeenAt;
+    }
+
+    @Override
+    public String toString() {
+        return "UserLite{" +
+                "username='" + username + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", profileImage=" + profileImage +
+                ", status=" + status +
+                ", lastSeenAt=" + lastSeenAt +
+                '}'+super.toString();
     }
 }

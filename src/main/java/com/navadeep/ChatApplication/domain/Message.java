@@ -1,26 +1,19 @@
 package com.navadeep.ChatApplication.domain;
 
+import jakarta.xml.bind.annotation.XmlRootElement;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class Message {
-    private long id;
+@XmlRootElement(name = "message")
+public class Message extends BaseDate {
     private UserLite sender;
-    private Conversation conversation;
+    private Long conversationId;
     private String body;
-    private Attachment messageAttachment;
-    private LocalDateTime createdAt;
+    private Attachment attachment;
     private LocalDateTime editedAt;
-    private boolean deleteForEveryone;
 
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
+    public Message() {}
     public UserLite getSender() {
         return sender;
     }
@@ -29,12 +22,12 @@ public class Message {
         this.sender = sender;
     }
 
-    public Conversation getConversation() {
-        return conversation;
+    public Long getConversationId() {
+        return conversationId;
     }
 
-    public void setConversation(Conversation conversation) {
-        this.conversation = conversation;
+    public void setConversationId(Long conversationId) {
+        this.conversationId = conversationId;
     }
 
     public String getBody() {
@@ -45,20 +38,12 @@ public class Message {
         this.body = body;
     }
 
-    public Attachment getMessageAttachment() {
-        return messageAttachment;
+    public Attachment getAttachment() {
+        return attachment;
     }
 
-    public void setMessageAttachment(Attachment messageAttachment) {
-        this.messageAttachment = messageAttachment;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    public void setAttachment(Attachment attachment) {
+        this.attachment = attachment;
     }
 
     public LocalDateTime getEditedAt() {
@@ -67,13 +52,5 @@ public class Message {
 
     public void setEditedAt(LocalDateTime editedAt) {
         this.editedAt = editedAt;
-    }
-
-    public boolean isDeleteForEveryone() {
-        return deleteForEveryone;
-    }
-
-    public void setDeleteForEveryone(boolean deleteForEveryone) {
-        this.deleteForEveryone = deleteForEveryone;
     }
 }

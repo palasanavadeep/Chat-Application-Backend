@@ -7,33 +7,53 @@
     <class name="com.navadeep.ChatApplication.domain.Conversation" table="conversations">
 
         <id name="id" column="id" type="long">
-            <generator class="native"/>
+            <generator class="native">
+                <param name="sequence_name">conversations_id_seq</param>
+                <param name="increment_size">1</param>
+            </generator>
         </id>
+        <property name="createdAt" column="created_at"
+                  type="java.time.LocalDateTime" not-null="true"/>
 
-        <many-to-one name="type" class="com.navadeep.ChatApplication.domain.Lookup"
-                     column="type_id" not-null="true" lazy="proxy"/>
+        <many-to-one name="type"
+                     class="com.navadeep.ChatApplication.domain.Lookup"
+                     column="type_id"
+                     not-null="true"
+                     lazy="proxy"/>
 
         <property name="name" column="name" type="string"/>
 
         <property name="description" column="description" type="string"/>
 
-        <many-to-one name="conversationImage" class="com.navadeep.ChatApplication.domain.Attachment"
-                     column="conversation_image_id" lazy="proxy"/>
+        <many-to-one name="conversationImage"
+                     class="com.navadeep.ChatApplication.domain.Attachment"
+                     column="conversation_image_id"
+                     lazy="proxy"/>
 
-        <many-to-one name="createdBy" class="com.navadeep.ChatApplication.domain.UserLite"
-                     column="created_by_id" not-null="true" lazy="proxy"/>
+        <many-to-one name="createdBy"
+                     class="com.navadeep.ChatApplication.domain.UserLite"
+                     column="created_by_id"
+                     not-null="true"
+                     lazy="proxy"/>
 
-        <property name="createdAt" column="created_at" type="java.time.LocalDateTime"
-                  not-null="true"/>
 
-        <list name="members" cascade="all-delete-orphan" fetch="select" lazy="true">
-            <key column="conversation_id" not-null="true"/>
-            <list-index column="member_order"/>
+
+
+        <bag name="conversationParticipants" table="conversation_participants" lazy="true" inverse="false" cascade="all">
+            <key column="conversation_id"/>
             <one-to-many class="com.navadeep.ChatApplication.domain.ConversationParticipant"/>
-        </list>
+        </bag>
 
-        <many-to-one name="lastMessage" class="com.navadeep.ChatApplication.domain.Message"
-                    column="last_message_id" lazy="proxy"/>
+        <one-to-one name="lastMessage" class="com.navadeep.ChatApplication.domain.Message"
+                     lazy="proxy"/>
+
+
 
     </class>
 </hibernate-mapping>
+<!--        <list name="conversationParticipants" cascade="all-delete-orphan" fetch="select" lazy="true">-->
+<!--            <key column="conversation_id" not-null="true"/>-->
+<!--            <list-index column="member_order"/>-->
+<!--            <one-to-many class="com.navadeep.ChatApplication.domain.ConversationParticipant"/>-->
+<!--        </list>-->
+<!--        column="last_message_id"-->

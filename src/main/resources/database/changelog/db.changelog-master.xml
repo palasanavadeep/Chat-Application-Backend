@@ -5,21 +5,29 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
+
     <!-- Include individual changelogs in dependency order -->
     <include file="database/changelog/changelog-lookup.xml"/>
     <include file="database/changelog/changelog-attachment.xml"/>
+    <include file="database/changelog/changelog-user-lite.xml"/>
     <include file="database/changelog/changelog-user.xml"/>
-    <include file="database/changelog/changelog-message.xml"/>
     <include file="database/changelog/changelog-conversation.xml"/>
     <include file="database/changelog/changelog-conversation-participant.xml"/>
-    <include file="database/changelog/changelog-user-event.xml"/>
+    <include file="database/changelog/changelog-message.xml"/>
+    <include file="database/changelog/changelog-message-receipt.xml"/>
 
-    <changeSet id="add_fk_constraint_to_message" author="navadeep">
-        <addForeignKeyConstraint baseTableName="messages"
-                                 baseColumnNames="conversation_id"
-                                 constraintName="fk_messages_conversation"
-                                 referencedTableName="conversations"
+    <changeSet id="add_fk_constraint_to_conversations" author="navadeep">
+        <addForeignKeyConstraint baseTableName="conversations"
+                                 baseColumnNames="last_message_id"
+                                 constraintName="fk_conversations_message"
+                                 referencedTableName="messages"
                                  referencedColumnNames="id"/>
     </changeSet>
+
+    <include file="database/changelog/changelog.lookup-data.xml"/>
+<!--    <include file="database/changelog/changelog.dummydata.xml"/>-->
+
+
+
 
 </databaseChangeLog>

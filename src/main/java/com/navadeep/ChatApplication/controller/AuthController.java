@@ -1,43 +1,107 @@
 package com.navadeep.ChatApplication.controller;
 
 import com.navadeep.ChatApplication.domain.User;
-import com.navadeep.ChatApplication.domain.UserLite;
+import com.navadeep.ChatApplication.service.AuthService;
+import com.navadeep.ChatApplication.service.UserService;
+import com.navadeep.ChatApplication.serviceImpl.AuthServiceImpl;
+import com.navadeep.ChatApplication.serviceImpl.ConversationServiceImpl;
+import com.navadeep.ChatApplication.serviceImpl.UserServiceImpl;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.apache.commons.io.IOUtils;
+import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.ext.multipart.Multipart;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.Path;
+import java.io.IOException;
 
-import java.time.LocalDateTime;
-import java.util.Map;
 
 @Path("/auth")
 public class AuthController {
+
+    private AuthService authService;
+    private UserService userService;
+
+
+    public AuthController(AuthService authService,UserService userService) {
+        this.authService = authService;
+        this.userService = userService;
+    }
 
     @POST
     @Path("/login")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response login(){
-        System.out.println("login");
-        UserLite user = new UserLite();
-        user.setUsername("admin");
-        user.setId(12);
-        user.setDisplayName("admin");
-        user.setStatus(true);
-        user.setLastSeenAt(LocalDateTime.now());
-        user.setProfileImage(null);
-        Response r = Response.ok(user).build();
-        System.out.println(r.toString());
+    public Response login(User user){
+        System.out.println("in signin controller");
+
+        if(user.getUsername() == null || user.getPassword() == null ){
+            throw new RuntimeException("Username  and password can't be NULL");
+        }
+
+        AuthServiceImpl.AuthResponse userResponse = authService.login(user.getUsername(),user.getPassword());
+
+        Response r = Response.ok(userResponse).build();
+        System.out.println("Completed signin for "+ user.getUsername());
         return r;
     }
 
 
     @POST
     @Path("/register")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public UserLite register(@RequestBody User user){
-        return new UserLite();
+    public Response register(
+            @Multipart("profileImageFile") Attachment profileImageFile,
+            @Multipart("username") String username,
+            @Multipart("email") String email,
+            @Multipart("password") String password,
+            @Multipart("displayName") String displayName
+    ) throws IOException {
+
+        if(username == null || password == null || email == null ){
+            throw new RuntimeException("Username  and password and Email can't be NULL");
+        }
+
+        User user = new User();
+        user.setUsername(username);
+        user.setDisplayName(displayName);
+        user.setPassword(password);
+        user.setEmail(email);
+
+        byte[] file = null;
+        String fileName = null;
+        if(profileImageFile != null){
+            file = IOUtils.toByteArray(profileImageFile.getDataHandler().getInputStream());
+            // Extract filename
+            fileName = profileImageFile.getContentDisposition().getParameter("filename");
+
+        }
+
+        AuthServiceImpl.AuthResponse registeredUser = authService.register(user,file,fileName);
+
+        return Response.ok(registeredUser).build();
     }
+
+
+    @GET
+    @Path("/get/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response test(@PathParam("userId") Long userId){
+
+        if (userId == null) {
+            throw new RuntimeException("UserId can't be NULL");
+        }
+
+        System.out.println("in get User method");
+        User user = userService.getUserProfileById(userId);
+
+        System.out.println("User found User : "+user);
+
+        return Response.ok(user).build();
+    }
+
+
+
 }
 

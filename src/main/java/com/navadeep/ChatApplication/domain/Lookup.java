@@ -1,20 +1,16 @@
 package com.navadeep.ChatApplication.domain;
 
-public class Lookup {
-    private long id;
+import jakarta.xml.bind.annotation.XmlRootElement;
+
+import java.io.Serializable;
+
+@XmlRootElement(name = "lookup")
+public class Lookup extends PersistentObject {
     private String lookupName;
     private String lookupCategory;
     private String lookupCode;
 
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
+    public Lookup() {}
     public String getLookupName() {
         return lookupName;
     }

@@ -1,20 +1,34 @@
 package com.navadeep.ChatApplication.domain;
 
+import jakarta.xml.bind.annotation.XmlRootElement;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class Conversation {
-    private long id;
-    private Lookup type;
+@XmlRootElement(name = "conversation")
+public class Conversation extends  BaseDate{
+
+    private Lookup type; // PERSONAL / GROUP
     // for group conversation
     private String name;
     private String description;
     private Attachment conversationImage;
-
     private UserLite createdBy;
-    private LocalDateTime createdAt;
-    private List<ConversationParticipant> members;
+    private List<ConversationParticipant> conversationParticipants;
     private Message lastMessage;
+
+    private boolean hasUnreadMessages;
+
+    public boolean isHasUnreadMessages() {
+        return hasUnreadMessages;
+    }
+
+    public void setHasUnreadMessages(boolean hasUnreadMessages) {
+        this.hasUnreadMessages = hasUnreadMessages;
+    }
+
+    public Conversation() {}
 
     public Lookup getType() {
         return type;
@@ -22,14 +36,6 @@ public class Conversation {
 
     public void setType(Lookup type) {
         this.type = type;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -64,20 +70,12 @@ public class Conversation {
         this.createdBy = createdBy;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public List<ConversationParticipant> getConversationParticipants() {
+        return conversationParticipants;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public List<ConversationParticipant> getMembers() {
-        return members;
-    }
-
-    public void setMembers(List<ConversationParticipant> members) {
-        this.members = members;
+    public void setConversationParticipants(List<ConversationParticipant> conversationParticipants) {
+        this.conversationParticipants = conversationParticipants;
     }
 
     public Message getLastMessage() {

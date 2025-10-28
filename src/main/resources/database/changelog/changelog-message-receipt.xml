@@ -1,0 +1,36 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="create_message_receipts_table_V1" author="navadeep">
+
+        <!-- Sequence for message_receipts -->
+        <createSequence sequenceName="message_receipts_id_seq" startValue="1" incrementBy="1"/>
+
+        <createTable tableName="message_receipts">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="message_id" type="BIGINT">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_message_receipts_message"
+                        references="messages(id)"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_message_receipts_user_lite"
+                        references="user_lites(id)"/>
+            </column>
+            <column name="status_id" type="BIGINT">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_message_receipts_lookup"
+                        references="lookups(id)"/>
+            </column>
+        </createTable>
+
+    </changeSet>
+</databaseChangeLog>

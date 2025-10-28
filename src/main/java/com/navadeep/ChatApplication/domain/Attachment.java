@@ -1,20 +1,16 @@
 package com.navadeep.ChatApplication.domain;
 
-import java.util.Arrays;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
-public class Attachment {
-    private long id;
+import java.io.Serializable;
+
+@XmlRootElement(name = "attachment")
+public class Attachment extends PersistentObject {
+
     private Lookup attachmentType;
-    private byte[] file;
+    private byte[] file;  // BLOB
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
+    public Attachment() {}
     public Lookup getAttachmentType() {
         return attachmentType;
     }
@@ -31,12 +27,4 @@ public class Attachment {
         this.file = file;
     }
 
-    @Override
-    public String toString() {
-        return "Attachment{" +
-                "id=" + id +
-                ", attachmentType=" + attachmentType +
-                ", file=" + Arrays.toString(file) +
-                '}';
-    }
 }

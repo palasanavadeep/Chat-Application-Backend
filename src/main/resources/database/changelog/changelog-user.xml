@@ -5,32 +5,25 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="create_user_table_V1" author="navadeep">
+    <changeSet id="create_user_table_V2" author="navadeep">
         <createTable tableName="users">
-            <column name="id" type="BIGINT" autoIncrement="true">
-                <constraints primaryKey="true" nullable="false"/>
+            <column name="id" type="BIGINT">
+                <constraints
+                         primaryKey="true"
+                         nullable="false"
+                         foreignKeyName="fk_users_userlite"
+                         references="user_lites(id)"
+                />
             </column>
-            <column name="user_type" type="VARCHAR(50)" defaultValue="LITE">
-                <constraints nullable="false"/>
-            </column>
-            <column name="username" type="VARCHAR(255)" >
-                <constraints nullable="false" unique="true" />
-            </column>
-            <column name="display_name" type="VARCHAR(255)"/>
-            <column name="status" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
-            <column name="last_seen_at" type="TIMESTAMP"/>
-            <column name="profile_image_id" type="BIGINT">
-                <constraints foreignKeyName="fk_users_attachment" references="attachments(id)"/>
-            </column>
+
             <column name="email" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
+
             <column name="password" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="created_at" type="TIMESTAMP"/>
+
         </createTable>
     </changeSet>
 

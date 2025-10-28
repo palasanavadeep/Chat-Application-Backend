@@ -6,31 +6,41 @@
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
     <changeSet id="create_conversation_table_V1" author="navadeep">
+
+        <!-- Sequence for conversations -->
+        <createSequence sequenceName="conversations_id_seq" startValue="1" incrementBy="1"/>
+
         <createTable tableName="conversations">
+
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+
             <column name="type_id" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_conversations_lookup"
                              references="lookups(id)"/>
             </column>
+
             <column name="name" type="VARCHAR(255)"/>
+
             <column name="description" type="VARCHAR(1000)"/>
+
             <column name="conversation_image_id" type="BIGINT">
                 <constraints foreignKeyName="fk_conversations_attachment"
                              references="attachments(id)"/>
             </column>
+
             <column name="created_by_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_conversations_user"
-                             references="users(id)"/>
+                <constraints nullable="false" foreignKeyName="fk_conversations_user_lite"
+                             references="user_lites(id)"/>
             </column>
-            <column name="created_at" type="TIMESTAMP">
+
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="last_message_id" type="BIGINT">
-                <constraints foreignKeyName="fk_conversations_message"
-                             references="messages(id)"/>
-            </column>
+
+            <column name="last_message_id" type="BIGINT"/>
+
         </createTable>
     </changeSet>
 </databaseChangeLog>

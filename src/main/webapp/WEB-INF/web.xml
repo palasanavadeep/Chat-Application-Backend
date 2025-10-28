@@ -12,10 +12,17 @@
     </param-value>
   </context-param>
 
+  <context-param>
+    <param-name>org.apache.cxf.jaxrs.providers</param-name>
+    <param-value>com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider</param-value>
+  </context-param>
+
   <!-- Spring Context Loader Listener to initialize the root application context -->
   <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
+
+
 
   <servlet>
     <servlet-name>CXFServlet</servlet-name>
@@ -27,6 +34,8 @@
     <servlet-name>CXFServlet</servlet-name>
     <url-pattern>/api/*</url-pattern>
   </servlet-mapping>
+
+
 
 <!--  <servlet>-->
 <!--    <servlet-name>dispatcher</servlet-name>-->

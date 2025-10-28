@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jaxrs="http://cxf.apache.org/jaxrs"
@@ -5,28 +6,28 @@
          http://www.springframework.org/schema/beans
          https://www.springframework.org/schema/beans/spring-beans.xsd
          http://cxf.apache.org/jaxrs
-         https://cxf.apache.org/schemas/jaxrs.xsd">
+         https://cxf.apache.org/schemas/jaxrs.xsd"
+>
 
-<!--    <import resource="file:WEB-INF/applicationContext.xml"/>-->
-<!--        <bean id="jsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>-->
-<!--        <import resource="classpath:META-INF/cxf/cxf.xml"/>-->
-<!--    <bean id="cxf" class="org.apache.cxf.bus.spring.SpringBus" destroy-method="shutdown"/>-->
-        <bean id="jacksonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
+        <import resource="classpath:META-INF/cxf/cxf.xml"/>
 
+        <bean id="objectMapper" class="com.navadeep.ChatApplication.utils.ObjectMapperFactoryBean"/>
 
-        <!-- Define the JAX-RS server endpoint -->
-        <jaxrs:server id="helloController" address="/">
+        <bean id="jacksonProvider" class="com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider">
+            <property name="mapper" ref="objectMapper"/>
+        </bean>
+
+    <!-- Define the JAX-RS server endpoint -->
+        <jaxrs:server id="authServer" address="/">
             <jaxrs:serviceBeans>
-<!--                <bean class="com.navadeep.ChatApplication.controller.Hello"/>-->
-                <bean class="com.navadeep.ChatApplication.controller.AuthController"/>
+                <ref bean="hello" />
+                <ref bean="authController" />
             </jaxrs:serviceBeans>
-            <jaxrs:providers>-->
-<!--                <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>-->
-                <ref bean="jacksonProvider" />
+            <jaxrs:providers>
+                <ref bean="jacksonProvider"/>
             </jaxrs:providers>
+
         </jaxrs:server>
-
-
 
 
 </beans>

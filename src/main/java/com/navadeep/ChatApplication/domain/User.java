@@ -1,11 +1,22 @@
 package com.navadeep.ChatApplication.domain;
 
+import jakarta.xml.bind.annotation.XmlRootElement;
+
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
-public class User extends UserLite{
+@XmlRootElement(name = "user")
+public class User extends UserLite {
     private String email;
     private String password;
-    private LocalDateTime createdAt;
+
+    public User() {}
+
+    public User(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
 
     public String getEmail() {
         return email;
@@ -23,11 +34,11 @@ public class User extends UserLite{
         this.password = password;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    @Override
+    public String toString() {
+        return "User{" +
+                "email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                '}'+ super.toString();
     }
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="com.navadeep.ChatApplication.domain">
+
+    <class name="com.navadeep.ChatApplication.domain.BaseDate" abstract="true">
+        <id name="id" column="id" type="long">
+
+        </id>
+        <property name="createdAt" column="created_at" type="java.time.LocalDateTime"/>
+    </class>
+
+</hibernate-mapping>

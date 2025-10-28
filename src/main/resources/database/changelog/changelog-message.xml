@@ -6,32 +6,40 @@
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
     <changeSet id="create_message_table_V1" author="navadeep">
+
+        <!-- Sequence for conversations -->
+        <createSequence sequenceName="messages_id_seq" startValue="1" incrementBy="1"/>
+
+
         <createTable tableName="messages">
+
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+
             <column name="sender_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_messages_userlite"
-                             references="users(id)"/>
+                <constraints nullable="false" foreignKeyName="fk_messages_user_lite"
+                             references="user_lites(id)"/>
             </column>
+
             <column name="conversation_id" type="BIGINT">
-                <constraints nullable="false" />
-<!--                foreignKeyName="fk_messages_conversation" references="conversations(id)"-->
+                <constraints nullable="false"
+                             foreignKeyName="fk_messages_conversation"
+                             references="conversations(id)"/>
+
             </column>
+
             <column name="body" type="TEXT">
-                <constraints nullable="false"/>
             </column>
+
             <column name="message_attachment_id" type="BIGINT">
                 <constraints foreignKeyName="fk_messages_attachment"
                              references="attachments(id)"/>
             </column>
-            <column name="created_at" type="TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
+
+            <column name="created_at" type="TIMESTAMP"/>
             <column name="edited_at" type="TIMESTAMP"/>
-            <column name="delete_for_everyone" type="BOOLEAN" defaultValueBoolean="false">
-                <constraints nullable="false"/>
-            </column>
+
         </createTable>
     </changeSet>
 </databaseChangeLog>

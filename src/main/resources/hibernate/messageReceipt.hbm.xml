@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="com.navadeep.ChatApplication.domain.MessageReceipt" table="message_receipts">
+        <id name="id" column="id" type="long">
+            <generator class="native">
+                <param name="sequence_name">message_receipts_id_seq</param>
+                <param name="increment_size">1</param>
+            </generator>
+        </id>
+
+        <many-to-one name="message"
+                     column="message_id"
+                     class="com.navadeep.ChatApplication.domain.Message"
+                     lazy="proxy"/>
+        <property name="userId" column="user_id" type="long"/>
+        <many-to-one name="status"
+                     column="status_id"
+                     class="com.navadeep.ChatApplication.domain.Lookup"/>
+
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="insert-lookup-data" author="navadeep">
+        <insert tableName="lookups">
+            <column name="lookup_category" value="conversationType"/>
+            <column name="lookup_code" value="PERSONAL"/>
+            <column name="lookup_name" value="Personal Conversation Lookup"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="conversationType"/>
+            <column name="lookup_code" value="GROUP"/>
+            <column name="lookup_name" value="Group Conversation Lookup"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="participantRole"/>
+            <column name="lookup_code" value="ADMIN"/>
+            <column name="lookup_name" value="Admin Participant"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="participantRole"/>
+            <column name="lookup_code" value="MEMBER"/>
+            <column name="lookup_name" value="Member Participant"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="attachmentType"/>
+            <column name="lookup_code" value="IMAGE"/>
+            <column name="lookup_name" value="Image Attachment"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="attachmentType"/>
+            <column name="lookup_code" value="PDF"/>
+            <column name="lookup_name" value="PDF Attachment"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="attachmentType"/>
+            <column name="lookup_code" value="AUDIO"/>
+            <column name="lookup_name" value="Audio Attachment"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="attachmentType"/>
+            <column name="lookup_code" value="VIDEO"/>
+            <column name="lookup_name" value="Video Attachment"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="messageReceiptStatus"/>
+            <column name="lookup_code" value="SENT"/>
+            <column name="lookup_name" value="Sent message status"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="messageReceiptStatus"/>
+            <column name="lookup_code" value="READ"/>
+            <column name="lookup_name" value="Read message status"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="messageReceiptStatus"/>
+            <column name="lookup_code" value="DELIVERED"/>
+            <column name="lookup_name" value="Delivered message status"/>
+        </insert>
+
+        <insert tableName="lookups">
+            <column name="lookup_category" value="messageReceiptStatus"/>
+            <column name="lookup_code" value="DELETED"/>
+            <column name="lookup_name" value="Deleted message status"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>

@@ -5,7 +5,11 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="create_attachment_table_V1" author="navadeep">
+    <changeSet id="create_attachment_table_V2" author="navadeep" >
+
+        <!-- Sequence for attachments -->
+        <createSequence sequenceName="attachments_id_seq" startValue="1" incrementBy="1"/>
+
         <createTable tableName="attachments">
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>

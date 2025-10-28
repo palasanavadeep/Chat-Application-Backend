@@ -7,15 +7,26 @@
     <class name="com.navadeep.ChatApplication.domain.Lookup" table="lookups">
 
         <id name="id" column="id" type="long">
-            <generator class="increment"/>
+            <generator class="native">
+                <param name="sequence_name">lookups_id_seq</param>
+                <param name="increment_size">1</param>
+            </generator>
         </id>
 
-        <property name="lookupName" column="lookup_name" type="string" not-null="true"/>
-
-        <property name="lookupCategory" column="lookup_category" type="string"
+        <property name="lookupName"
+                  column="lookup_name"
+                  type="string"
                   not-null="true"/>
 
-        <property name="lookupCode" column="lookup_code" type="string" not-null="true"/>
+        <property name="lookupCategory"
+                  column="lookup_category"
+                  type="string"
+                  not-null="true"/>
+
+        <property name="lookupCode"
+                  column="lookup_code"
+                  type="string"
+                  not-null="true"/>
 
     </class>
 </hibernate-mapping>
