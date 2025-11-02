@@ -11,4 +11,5 @@ public interface MessageService {
     Message editMessage(Long userId,Long messageId,String newMessageContent);
     void deleteMessageForMe(Long userId,Long messageId);
     void deleteMessageForEveryone(Long userId,Long messageId,Long conversationId);
+    List<Message> getMessageByConversationId(Long userId,Long conversationId);
 }

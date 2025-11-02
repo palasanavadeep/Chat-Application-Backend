@@ -3,10 +3,10 @@ package com.navadeep.ChatApplication.serviceImpl;
 
 import com.navadeep.ChatApplication.dao.*;
 import com.navadeep.ChatApplication.domain.*;
-import com.navadeep.ChatApplication.service.ConversationParticipantService;
-import com.navadeep.ChatApplication.service.ConversationService;
-import com.navadeep.ChatApplication.service.LookupService;
-import com.navadeep.ChatApplication.service.MessageReceiptService;
+import com.navadeep.ChatApplication.netty.SessionManager;
+import com.navadeep.ChatApplication.netty.WsResponse;
+import com.navadeep.ChatApplication.service.*;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,18 +19,23 @@ public class ConversationServiceImpl implements ConversationService {
     private UserLiteDao userLiteDao;
     private ConversationParticipantService conversationParticipantService;
     private LookupService lookupService;
+    private AttachmentService attachmentService;
+    private SessionManager sessionManager;
 
-    public ConversationServiceImpl(ConversationDao conversationDao, ConversationParticipantDao conversationParticipantDao, MessageReceiptService messageReceiptService, UserLiteDao userLiteDao, ConversationParticipantService conversationParticipantService, LookupService lookupService) {
+    public ConversationServiceImpl(ConversationDao conversationDao, ConversationParticipantDao conversationParticipantDao, MessageReceiptService messageReceiptService, UserLiteDao userLiteDao, ConversationParticipantService conversationParticipantService, LookupService lookupService,AttachmentService attachmentService,SessionManager sessionManager) {
         this.conversationDao = conversationDao;
         this.conversationParticipantDao = conversationParticipantDao;
         this.messageReceiptService = messageReceiptService;
         this.userLiteDao = userLiteDao;
         this.conversationParticipantService = conversationParticipantService;
         this.lookupService = lookupService;
+        this.attachmentService = attachmentService;
+        this.sessionManager = sessionManager;
     }
 
     @Override
-    public Conversation createConversation(Long userId, String type, String name, String description, List<Long> participants,Attachment conversationImage) {
+    public Conversation createConversation(Long userId, String type, String name, String description,
+                                           List<Long> participants,byte[] conversationImageFile,String fileName) {
 
         if(type == null || type.isEmpty()){
             throw new IllegalArgumentException("type is null or empty");
@@ -70,20 +75,19 @@ public class ConversationServiceImpl implements ConversationService {
             if(!description.isEmpty()){
                 newConversation.setDescription(description);
             }
-            if(conversationImage != null && conversationImage.getId() != null){
-                newConversation.setConversationImage(conversationImage);
+            if(conversationImageFile != null && fileName != null){
+                Attachment conversationAttachment = attachmentService.save(fileName,conversationImageFile);
+                newConversation.setConversationImage(conversationAttachment);
             }
 
-        }
-
-        if(conversationImage != null){
-            newConversation.setConversationImage(conversationImage);
         }
 
         // save the new conversation
         Conversation createdConversation = conversationDao.save(newConversation);
 
         // broadcast this new conversation message to all participants (socket)
+        WsResponse wsResponse = WsResponse.success("newConversation",createdConversation);
+        sessionManager.broadcast(wsResponse,participants);
 
         return createdConversation;
     }
@@ -99,24 +103,51 @@ public class ConversationServiceImpl implements ConversationService {
         return conversationParticipant;
     }
 
-    @Override
-    public Conversation updateConversation(Long userId,Conversation conversation) {
 
-        if(conversation == null || conversation.getId() == null){
-            throw new IllegalArgumentException("conversation is null or empty");
+    @Override
+    public Conversation updateConversation(Long userId,Long conversationId,String name,String description,byte[] conversationImageFile,String fileName) {
+
+        if(conversationId == null){
+            throw new IllegalArgumentException("conversationId is null or empty");
         }
 
-        ConversationParticipant checkIfParticipant = conversationParticipantService.findByConversationAndUserId(conversation.getId(),userId);
+        ConversationParticipant checkIfParticipant = conversationParticipantService.findByConversationAndUserId(conversationId,userId);
         if(checkIfParticipant == null){
             throw new IllegalArgumentException("You are not allowed to update this conversation");
         }
 
-        Conversation conversationToUpdate = conversationDao.findById(conversation.getId());
-        conversationToUpdate.setName(conversation.getName());
-        conversationToUpdate.setDescription(conversation.getDescription());
-//        conversationToUpdate.setConversationImage(conversation.getConversationImage());
+        Conversation conversationToUpdate = conversationDao.findById(conversationId);
+        if(name != null){
+            conversationToUpdate.setName(name);
+        }
+        if(description != null){
+            conversationToUpdate.setDescription(description);
+        }
+//
+        if(conversationImageFile != null && fileName != null){
+            Attachment previousAttachment = conversationToUpdate.getConversationImage();
+            Attachment newAttachment = attachmentService.save(fileName,conversationImageFile);
+            conversationToUpdate.setConversationImage(newAttachment);
+            if(previousAttachment != null){
+                attachmentService.delete(previousAttachment.getId());
+            }
 
-        return conversationDao.update(conversationToUpdate);
+        }
+
+        Conversation updatedConversation =  conversationDao.update(conversationToUpdate);
+
+        // broadcasting to all except requestor
+        List<Long> participantUserIds = updatedConversation
+                .getConversationParticipants()
+                .stream()
+                .map(participant -> participant.getUser().getId())
+                .filter(uId -> !(userId.equals(uId)))
+                .toList();
+
+        WsResponse wsResponse = WsResponse.success("updatedConversation",updatedConversation);
+        sessionManager.broadcast(wsResponse,participantUserIds);
+
+        return updatedConversation;
     }
 
     @Override
@@ -221,24 +252,25 @@ public class ConversationServiceImpl implements ConversationService {
         }
 
         ConversationParticipant checkIfParticipant = conversationParticipantService.findByConversationAndUserId(conversationId,newUserId);
+        ConversationParticipant resultParticipant;
 
         if(checkIfParticipant == null){
             ConversationParticipant newConversationParticipant =
                     generateConversationParticipant(newUserId,"MEMBER");
 
             conversationDao.addParticipant(conversationId,newConversationParticipant);
-
-            return newConversationParticipant;
+            resultParticipant = newConversationParticipant;
         }
         else{
             checkIfParticipant.setLeftAt(null);
-            return  conversationParticipantDao.update(checkIfParticipant);
+            resultParticipant =  conversationParticipantDao.update(checkIfParticipant);
         }
 
-
-
-        // broadcast to newUserId with new Conversation
-
+        // broadcast to new User
+        Conversation conversation = conversationDao.findById(conversationId);
+        WsResponse wsResponse = WsResponse.success("newConversation",conversation);
+        sessionManager.broadcast(wsResponse,List.of(newUserId));
+        return resultParticipant;
 
     }
 
@@ -258,9 +290,16 @@ public class ConversationServiceImpl implements ConversationService {
         ConversationParticipant checkIfParticipant = conversationParticipantService.findById(participantId);
         if(checkIfParticipant != null){
             conversationDao.removeParticipant(conversationId,participantId);
+
+            WsResponse wsResponse = WsResponse.success("removeConversation",
+                    Map.of("conversationId",conversationId));
+
+            sessionManager.broadcast(wsResponse,
+                    List.of(checkIfParticipant.getUser().getId()));
+
         }
 
-        // broadcast message to checkIfParticipant.getUser().getId()
+
     }
 
     @Override

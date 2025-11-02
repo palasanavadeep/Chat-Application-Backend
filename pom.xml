@@ -12,17 +12,12 @@
     <maven.compiler.target>21</maven.compiler.target>
   </properties>
   <dependencies>
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
       <version>6.2.11</version>
     </dependency>
-
-<!--    <dependency>-->
-<!--      <groupId>org.springframework</groupId>-->
-<!--      <artifactId>spring-orm</artifactId>-->
-<!--      <version>6.2.11</version>-->
-<!--    </dependency>-->
 
     <dependency>
       <groupId>org.springframework</groupId>
@@ -33,25 +28,37 @@
     <dependency>
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-      <version>4.1.2</version>
+      <version>4.0.3</version>
     </dependency>
 
       <dependency>
           <groupId>org.apache.cxf</groupId>
           <artifactId>cxf-rt-frontend-simple</artifactId>
-          <version>4.1.2</version>
+          <version>4.0.3</version>
       </dependency>
 
     <dependency>
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-rt-transports-http</artifactId>
-      <version>4.1.2</version>
+      <version>4.0.3</version>
     </dependency>
 
       <dependency>
           <groupId>org.apache.cxf</groupId>
           <artifactId>cxf-rt-rs-extension-providers</artifactId>
-          <version>4.1.2</version>
+          <version>4.0.3</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.cxf</groupId>
+          <artifactId>cxf-rt-rs-client</artifactId>
+          <version>4.0.3</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.cxf</groupId>
+          <artifactId>cxf-rt-rs-security-cors</artifactId>
+          <version>4.0.3</version>
       </dependency>
 
       <dependency>
@@ -72,26 +79,11 @@
           <version>2.17.2</version>
       </dependency>
 
-
-      <dependency>
-          <groupId>org.apache.cxf</groupId>
-          <artifactId>cxf-rt-rs-extension-providers</artifactId>
-          <version>4.1.2</version> <!-- or your CXF 4.x version -->
-      </dependency>
-
-
       <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
       <version>6.1.0</version>
     </dependency>
-
-
-<!--    <dependency>-->
-<!--      <groupId>com.fasterxml.jackson.jaxrs</groupId>-->
-<!--      <artifactId>jackson-jaxrs-json-provider</artifactId>-->
-<!--      <version>2.20.0</version>-->
-<!--    </dependency>-->
 
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -123,15 +115,12 @@
       <version>6.4.4.Final</version>
     </dependency>
 
-
-    <!-- https://mvnrepository.com/artifact/org.liquibase/liquibase-core -->
     <dependency>
       <groupId>org.liquibase</groupId>
       <artifactId>liquibase-core</artifactId>
       <version>4.33.0</version>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
@@ -144,23 +133,40 @@
       <version>6.2.11</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>4.1.100.Final</version>
+    </dependency>
 
     <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>0.11.5</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>0.11.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson -->
+      <version>0.11.5</version>
+      <scope>runtime</scope>
+    </dependency>
+
+
+      <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
 
-
-
-
   </dependencies>
   <build>
     <finalName>ChatApplication</finalName>
-
-
-
-
   </build>
 </project>

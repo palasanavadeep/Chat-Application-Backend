@@ -8,9 +8,9 @@ public interface ConversationService extends BaseService<Conversation>{
 
 
     Conversation createConversation(Long userId, String type,
-                                    String name, String description, List<Long> participants, Attachment conversationImage);
+                                    String name, String description, List<Long> participants,byte[] conversationImageFile,String fileName);
 
-    Conversation updateConversation(Long userId,Conversation conversation);
+    Conversation updateConversation(Long userId,Long conversationId,String name,String description,byte[] conversationImageFile,String fileName);
     void updateLastMessage(Long conversationId,Message message);
     List<Conversation> getUserConversations(Long userid);
     ConversationParticipant addParticipant(Long userId,Long newUserId,Long conversationId);

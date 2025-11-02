@@ -31,7 +31,7 @@ public class TestingController {
                 .createConversation(user.getId(),
                         "PERSONAL",
                         "","",
-                        members,null);
+                        members,null,null);
 
         return Response.ok(conversation).build();
     }

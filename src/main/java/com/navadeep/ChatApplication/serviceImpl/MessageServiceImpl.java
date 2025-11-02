@@ -5,6 +5,8 @@ import com.navadeep.ChatApplication.dao.MessageDao;
 import com.navadeep.ChatApplication.dao.MessageReceiptDao;
 import com.navadeep.ChatApplication.dao.UserDao;
 import com.navadeep.ChatApplication.domain.*;
+import com.navadeep.ChatApplication.netty.SessionManager;
+import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.*;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -14,6 +16,7 @@ import org.hibernate.Transaction;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MessageServiceImpl implements MessageService {
 
@@ -24,6 +27,7 @@ public class MessageServiceImpl implements MessageService {
     private ConversationParticipantService conversationParticipantService;
     private UserService userService;
     private AttachmentService attachmentService;
+    private SessionManager sessionManager;
 
     public MessageServiceImpl(MessageDao messageDao,
                               MessageReceiptService messageReceiptService,
@@ -31,7 +35,8 @@ public class MessageServiceImpl implements MessageService {
                               ConversationParticipantService conversationParticipantService,
                               UserService userService,
                               AttachmentService attachmentService,
-                              LookupService lookupService) {
+                              LookupService lookupService,
+                              SessionManager sessionManager) {
         this.messageDao = messageDao;
         this.messageReceiptService = messageReceiptService;
         this.conversationService = conversationService;
@@ -39,6 +44,7 @@ public class MessageServiceImpl implements MessageService {
         this.userService = userService;
         this.attachmentService = attachmentService;
         this.conversationParticipantService = conversationParticipantService;
+        this.sessionManager = sessionManager;
     }
 
     @Override
@@ -63,22 +69,24 @@ public class MessageServiceImpl implements MessageService {
         List<Long> participants = conversationParticipantService.findParticipantUserIdsByConversationId(conversationId);
 
         // broadcast messages to all participants
+        WsResponse wsResponse = WsResponse.success("newMessage",savedMessage);
+        sessionManager.broadcast(wsResponse,participants);
 
-
+        // in future can be processed through queues
         List<MessageReceipt> messageReceipts = new ArrayList<>();
+        Lookup sentLookupStatus = lookupService.findByLookupCode("SENT");
 
         for (Long participantUserId : participants) {
             MessageReceipt messageReceipt = new MessageReceipt();
             messageReceipt.setMessage(savedMessage);
             messageReceipt.setUserId(participantUserId);
-            messageReceipt.setStatus(lookupService.findByLookupCode("SENT"));
+            messageReceipt.setStatus(sentLookupStatus);
             messageReceipts.add(messageReceipt);
         }
 
         messageReceiptService.saveOrUpdateMessageReceipts(messageReceipts);
 
         return savedMessage;
-
 
     }
 
@@ -95,14 +103,20 @@ public class MessageServiceImpl implements MessageService {
 
         message.setBody(newMessageContent);
 
-        Message savedMessage = messageDao.save(message);
+        Message updatedMessage = messageDao.update(message);
 
-        List<Long> participants = conversationParticipantService.findParticipantUserIdsByConversationId(savedMessage.getConversationId());
+        List<Long> participants = conversationParticipantService
+                    .findParticipantUserIdsByConversationId(updatedMessage.getConversationId())
+                    .stream()
+                    .filter(uId -> !(userId.equals(uId)))
+                    .toList();
 
 
         // broadcast to participants (participants)
+        WsResponse wsResponse = WsResponse.success("editedMessage",updatedMessage);
+        sessionManager.broadcast(wsResponse,participants);
 
-        return savedMessage;
+        return updatedMessage;
     }
 
     @Override
@@ -120,6 +134,9 @@ public class MessageServiceImpl implements MessageService {
         messageReceiptService.update(myReceipt);
 
         // broadcast to userId
+//        WsResponse wsResponse = WsResponse
+//                .success("deletedMessage", myReceipt.getMessage());
+//        sessionManager.broadcast(wsResponse, List.of(userId));
 
 
     }
@@ -142,14 +159,27 @@ public class MessageServiceImpl implements MessageService {
         }
 
         List<MessageReceipt> messageReceipts = messageReceiptService.findByMessageId(messageId);
-
+        Lookup deleteLookupStatus = lookupService.findByLookupCode("DELETED");
         messageReceipts.forEach(messageReceipt -> {
-            messageReceipt.setStatus(lookupService.findByLookupCode("DELETED"));
+            messageReceipt.setStatus(deleteLookupStatus);
         });
 
         messageReceiptService.saveOrUpdateMessageReceipts(messageReceipts); // uses batch updates (of  size 50)
 
         // broadcast to all participants (messageReceipt.userId) as deleted message
+        List<Long> effectedUsers = messageReceipts.stream().map(MessageReceipt::getUserId).filter(uId -> !(userId.equals(uId))).toList();
 
+        WsResponse wsResponse = WsResponse.success("deletedMessage",messageReceipts.getFirst().getMessage());
+        sessionManager.broadcast(wsResponse,effectedUsers);
+
+    }
+
+    @Override
+    public List<Message> getMessageByConversationId(Long userId, Long conversationId) {
+        if(userId == null || conversationId == null){
+            throw new RuntimeException("userId and conversationId cannot be null");
+        }
+
+        return messageDao.findByConversationId(userId,conversationId);
     }
 }

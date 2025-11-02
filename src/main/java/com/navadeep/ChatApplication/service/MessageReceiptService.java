@@ -12,5 +12,6 @@ public interface MessageReceiptService {
     MessageReceipt findByUserIdAndMessageId(Long userId,Long messageId);
     List<MessageReceipt> findByMessageId(Long messageId);
 
-
+    int markMessagesInConversationAsRead(Long userId,Long conversationId);
+    int markMessageAsRead(Long userId,Long messageId);
 }

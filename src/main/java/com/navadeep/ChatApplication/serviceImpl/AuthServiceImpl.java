@@ -10,6 +10,7 @@ import com.navadeep.ChatApplication.domain.User;
 import com.navadeep.ChatApplication.domain.UserLite;
 import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.AuthService;
+import com.navadeep.ChatApplication.utils.JwtUtil;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Hibernate;
 
@@ -20,11 +21,13 @@ public class AuthServiceImpl implements AuthService {
     private UserDao userDao;
     private UserLiteDao userLiteDao;  // remove useless
     private AttachmentService attachmentService;
+    private JwtUtil jwtUtil;
 
-    AuthServiceImpl(UserDaoImpl userDao, UserLiteDaoImpl userLiteDao,AttachmentServiceImpl attachmentService) {
+    AuthServiceImpl(UserDaoImpl userDao, UserLiteDaoImpl userLiteDao,AttachmentServiceImpl attachmentService, JwtUtil jwtUtil) {
         this.userDao = (UserDaoImpl)userDao;
         this.userLiteDao = (UserLiteDao) userLiteDao;
         this.attachmentService = attachmentService;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -39,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Credentials didn't match! Try again..");
         }
 
-        String token = "jwt token"; // generate token from JWT util.
+        String token = jwtUtil.generateToken(user.getId().toString());  // generate token from JWT util.
 
         return new AuthResponse(token,user);
     }
@@ -72,7 +75,7 @@ public class AuthServiceImpl implements AuthService {
 
 
 
-        String token = "jwt token";
+        String token = jwtUtil.generateToken(user.getId().toString());
 
         return new AuthResponse(token,newRegisteredUser);
 

@@ -1,6 +1,7 @@
 package com.navadeep.ChatApplication.daoImpl;
 
 import com.navadeep.ChatApplication.dao.MessageReceiptDao;
+import com.navadeep.ChatApplication.domain.Lookup;
 import com.navadeep.ChatApplication.domain.MessageReceipt;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -19,7 +20,7 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
     @Override
     public List<MessageReceipt> findByMessageId(Long messageId) {
         try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("from MessageReceipt mr where = :mid", MessageReceipt.class)
+            return session.createQuery("from MessageReceipt mr where mr.message.id = :mid", MessageReceipt.class)
                     .setParameter("mid", messageId)
                     .list();
         }
@@ -87,5 +88,76 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public int markConversationAsRead(Long userId, Long conversationId, Lookup readStatus) {
+        Session session = null;
+        Transaction tx = null;
+        int updatedCount = 0;
+
+        try {
+            session = sessionFactory.openSession();
+            tx = session.beginTransaction();
+
+            String hql = """
+                UPDATE MessageReceipt mr
+                SET mr.status = :readStatus
+                WHERE mr.userId = :userId
+                  AND mr.message.conversationId = :conversationId
+                  AND mr.status.lookupCode  NOT IN ('READ', 'DELETED')
+                """;
+
+            updatedCount = session.createQuery(hql)
+                    .setParameter("readStatus", readStatus)
+                    .setParameter("userId", userId)
+                    .setParameter("conversationId", conversationId)
+                    .executeUpdate();
+
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            e.printStackTrace();
+        } finally {
+            if (session != null) session.close();
+        }
+
+        return updatedCount;
+    }
+
+    @Override
+    public int markMessageAsRead(Long userId, Long messageId, Lookup readStatus) {
+        Session session = null;
+        Transaction tx = null;
+        int updatedCount = 0;
+
+        try {
+            session = sessionFactory.openSession();
+            tx = session.beginTransaction();
+
+            String hql = """
+                UPDATE MessageReceipt mr
+                SET mr.status = :readStatus,
+                    mr.updatedAt = CURRENT_TIMESTAMP
+                WHERE mr.userId = :userId
+                  AND mr.message.id = :messageId
+                  AND mr.status.lookupCode <> 'READ'
+                """;
+
+            updatedCount = session.createQuery(hql)
+                    .setParameter("readStatus", readStatus)
+                    .setParameter("userId", userId)
+                    .setParameter("messageId", messageId)
+                    .executeUpdate();
+
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null) tx.rollback();
+            e.printStackTrace();
+        } finally {
+            if (session != null) session.close();
+        }
+
+        return updatedCount;
     }
 }

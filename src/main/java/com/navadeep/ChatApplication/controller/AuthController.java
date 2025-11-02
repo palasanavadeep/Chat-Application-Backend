@@ -4,8 +4,6 @@ import com.navadeep.ChatApplication.domain.User;
 import com.navadeep.ChatApplication.service.AuthService;
 import com.navadeep.ChatApplication.service.UserService;
 import com.navadeep.ChatApplication.serviceImpl.AuthServiceImpl;
-import com.navadeep.ChatApplication.serviceImpl.ConversationServiceImpl;
-import com.navadeep.ChatApplication.serviceImpl.UserServiceImpl;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
@@ -13,10 +11,17 @@ import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.Path;
+import org.apache.cxf.rs.security.cors.CrossOriginResourceSharing;
+
 import java.io.IOException;
 
 
 @Path("/auth")
+@CrossOriginResourceSharing(
+        allowOrigins = {"http://localhost:3000"},
+        allowCredentials = true,
+        maxAge = 3600 // Cache preflight response for 1 hour
+)
 public class AuthController {
 
     private AuthService authService;
@@ -80,7 +85,8 @@ public class AuthController {
 
         AuthServiceImpl.AuthResponse registeredUser = authService.register(user,file,fileName);
 
-        return Response.ok(registeredUser).build();
+        return Response.ok(registeredUser)
+                .build();
     }
 
 
@@ -100,7 +106,6 @@ public class AuthController {
 
         return Response.ok(user).build();
     }
-
 
 
 }

@@ -1,26 +1,54 @@
-//package com.navadeep.ChatApplication.utils;
-//
-//import io.jsonwebtoken.*;
-//import java.util.Date;
-//
-//public class JwtUtil {
-//    private String secret = "super_secret_key";
-//    private long validity = 86400000; // 1 day
-//
-//    public String generateToken(Long userId, String username) {
-//        return Jwts.builder()
-//                .setSubject(username)
-//                .claim("userId", userId)
-//                .setIssuedAt(new Date())
-//                .setExpiration(new Date(System.currentTimeMillis() + validity))
-//                .signWith(SignatureAlgorithm.HS256, secret)
-//                .compact();
-//    }
-//
-//    public Claims validateToken(String token) {
-//        return Jwts.parser()
-//                .setSigningKey(secret)
-//                .parseClaimsJws(token)
-//                .getBody();
-//    }
-//}
+package com.navadeep.ChatApplication.utils;
+
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
+
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Date;
+
+public class JwtUtil {
+
+    private String secretKey;
+    private long expirationMs;
+
+    // Spring will call these setters from XML
+    public void setSecretKey(String secretKey) {
+        this.secretKey = secretKey;
+    }
+
+    public void setExpirationMs(long expirationMs) {
+        this.expirationMs = expirationMs;
+    }
+
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String generateToken(String userId) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expirationMs);
+
+        return Jwts.builder()
+                .setSubject(userId)
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public String validateToken(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token);
+
+            return claims.getBody().getSubject(); // userId
+        } catch (JwtException e) {
+            // includes ExpiredJwtException, MalformedJwtException, etc.
+            System.out.println("Invalid or expired JWT: " + e.getMessage());
+            return null;
+        }
+    }
+}

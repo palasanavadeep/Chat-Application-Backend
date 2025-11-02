@@ -17,6 +17,13 @@
             <property name="mapper" ref="objectMapper"/>
         </bean>
 
+    <bean id="corsInterceptor" class="com.navadeep.ChatApplication.utils.CorsInterceptor">
+        <property name="allowOrigin" value="http://localhost:3000"/>
+        <property name="allowCredentials" value="true"/>
+        <property name="allowedMethods" value="GET,POST,PUT,DELETE,OPTIONS"/>
+        <property name="allowedHeaders" value="Origin,Content-Type,Accept,Authorization,Content-Disposition,X-Requested-With"/>
+        <property name="maxAge" value="3600"/>
+    </bean>
     <!-- Define the JAX-RS server endpoint -->
         <jaxrs:server id="authServer" address="/">
             <jaxrs:serviceBeans>
@@ -25,7 +32,15 @@
             </jaxrs:serviceBeans>
             <jaxrs:providers>
                 <ref bean="jacksonProvider"/>
+                <bean class="org.apache.cxf.jaxrs.provider.MultipartProvider"/>
             </jaxrs:providers>
+
+            <jaxrs:inInterceptors>
+                <ref bean="corsInterceptor"/>
+            </jaxrs:inInterceptors>
+            <jaxrs:outInterceptors>
+                <ref bean="corsInterceptor"/>
+            </jaxrs:outInterceptors>
 
         </jaxrs:server>
 

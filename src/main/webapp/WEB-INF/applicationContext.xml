@@ -61,9 +61,16 @@
         <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
 
+    <bean id="jwtUtil" class="com.navadeep.ChatApplication.utils.JwtUtil">
+        <property name="secretKey" value="your-very-secret-long-key-12345678901234567890"/>
+        <property name="expirationMs" value="86400000"/> <!-- 24 hours -->
+    </bean>
+    <bean id="sessionManager" class="com.navadeep.ChatApplication.netty.SessionManager"/>
 
 
-<!--    Dao Impl-->
+
+
+    <!--    Dao Impl-->
     <bean id="attachmentDaoImpl" class="com.navadeep.ChatApplication.daoImpl.AttachmentDaoImpl">
         <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
@@ -106,6 +113,7 @@
         <constructor-arg  name="userDao" ref="userDaoImpl"/>
         <constructor-arg  name="userLiteDao" ref="userLiteDaoImpl"/>
         <constructor-arg  name="attachmentService" ref="attachmentServiceImpl"/>
+        <constructor-arg name="jwtUtil" ref="jwtUtil"/>
     </bean>
     <bean id="conversationParticipantServiceImpl" class="com.navadeep.ChatApplication.serviceImpl.ConversationParticipantServiceImpl">
         <constructor-arg name="conversationParticipantDao" ref="conversationParticipantDaoImpl"/>
@@ -121,6 +129,8 @@
         <constructor-arg name="userLiteDao" ref="userLiteDaoImpl"/>
         <constructor-arg name="conversationParticipantService" ref="conversationParticipantServiceImpl"/>
         <constructor-arg name="lookupService" ref="lookupServiceImpl"/>
+        <constructor-arg name="attachmentService" ref="attachmentServiceImpl"/>
+        <constructor-arg name="sessionManager" ref="sessionManager"/>
     </bean>
     <bean id="messageServiceImpl" class="com.navadeep.ChatApplication.serviceImpl.MessageServiceImpl">
         <constructor-arg name="messageDao" ref="messageDaoImpl"/>
@@ -130,9 +140,22 @@
         <constructor-arg name="userService" ref="userServiceImpl"/>
         <constructor-arg name="attachmentService" ref="attachmentServiceImpl"/>
         <constructor-arg name="lookupService" ref="lookupServiceImpl"/>
+        <constructor-arg name="sessionManager" ref="sessionManager"/>
     </bean>
 
-<!--    Rest API Beans-->
+
+    <!-- Netty WebSocketServer   -->
+    <bean id="nettyWebSocketServer"
+          class="com.navadeep.ChatApplication.netty.NettyWebSocketServer"
+          init-method="start"
+          destroy-method="stop">
+        <constructor-arg value="8081"/>
+    </bean>
+
+
+
+
+    <!--    Rest API Beans-->
 
     <bean id="authController" class="com.navadeep.ChatApplication.controller.AuthController">
         <constructor-arg name="authService" ref="authServiceImpl"/>
