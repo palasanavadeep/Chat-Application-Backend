@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionManager {
     private final ConcurrentHashMap<String, ChannelHandlerContext> sessions = new ConcurrentHashMap<>();
-    private ObjectMapper mapper = new ObjectMapper();
+    private ObjectMapper mapper;
 
     public void addSession(String userId, ChannelHandlerContext ctx) {
         sessions.put(userId, ctx);
@@ -22,20 +22,9 @@ public class SessionManager {
         sessions.remove(userId);
     }
 
-//    private void broadcast(String action, Object data,List<Long> receivers) {
-//        try {
-//            String json = mapper.writeValueAsString(Map.of("action", action, "data", data));
-//            TextWebSocketFrame frame = new TextWebSocketFrame(json);
-//            for (Long receiver : receivers) {
-//                ChannelHandlerContext ctx = sessions.get(receiver.toString());
-//                if (ctx.channel().isActive()) {
-//                    ctx.writeAndFlush(frame.retainedDuplicate()); // Efficient
-//                }
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+    public void setMapper(ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
 
     public void broadcast(WsResponse response, List<Long> receivers) {
         try {

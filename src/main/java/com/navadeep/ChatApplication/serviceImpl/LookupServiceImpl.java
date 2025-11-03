@@ -93,7 +93,7 @@ public class LookupServiceImpl implements LookupService {
 
     @Override
     public Lookup findByLookupCode(String lookupCode) {
-        Lookup lookup = lookupDao.findByCode(lookupCode);
+        Lookup lookup = lookupDao.findByCode(lookupCode.toUpperCase());
         if(lookup == null){
             throw new RuntimeException("Lookup code :  "+lookupCode+" not found");
         }

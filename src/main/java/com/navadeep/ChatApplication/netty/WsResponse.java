@@ -1,7 +1,6 @@
 package com.navadeep.ChatApplication.netty;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class WsResponse {
 
@@ -23,10 +22,6 @@ public class WsResponse {
 
     public static WsResponse error(String action, String message) {
         return new WsResponse(action, "error", null, message);
-    }
-
-    public String toJson(ObjectMapper mapper) throws Exception {
-        return mapper.writeValueAsString(this);
     }
 
     public String getAction() {

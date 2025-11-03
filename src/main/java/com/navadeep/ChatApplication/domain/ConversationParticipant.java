@@ -14,6 +14,17 @@ public class ConversationParticipant extends BaseDate{
     private boolean isMuted;
     private boolean isPinned;
 
+    @Override
+    public String toString() {
+        return "ConversationParticipant{" +
+                "user=" + user +
+                ", role=" + role +
+                ", leftAt=" + leftAt +
+                ", isMuted=" + isMuted +
+                ", isPinned=" + isPinned +
+                '}';
+    }
+
     public ConversationParticipant() {}
     public UserLite getUser() {
         return user;

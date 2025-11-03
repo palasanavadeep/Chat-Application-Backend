@@ -10,6 +10,15 @@ public class Lookup extends PersistentObject {
     private String lookupCategory;
     private String lookupCode;
 
+    @Override
+    public String toString() {
+        return "Lookup{" +
+                "lookupName='" + lookupName + '\'' +
+                ", lookupCategory='" + lookupCategory + '\'' +
+                ", lookupCode='" + lookupCode + '\'' +
+                '}';
+    }
+
     public Lookup() {}
     public String getLookupName() {
         return lookupName;

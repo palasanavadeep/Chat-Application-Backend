@@ -16,7 +16,9 @@
                   not-null="true"/>
 
         <many-to-one name="sender" class="com.navadeep.ChatApplication.domain.UserLite"
-                     column="sender_id" not-null="true" lazy="proxy"/>
+                     column="sender_id" not-null="true"
+                     fetch="join"
+                     lazy="false"/>
 
         <property name="conversationId"
                   column="conversation_id"
@@ -27,7 +29,8 @@
 
         <one-to-one name="attachment"
                     class="com.navadeep.ChatApplication.domain.Attachment"
-                    lazy="proxy" />
+                    fetch="join"
+                    lazy="false"/>
 
 
         <property name="editedAt" column="edited_at" type="java.time.LocalDateTime"/>

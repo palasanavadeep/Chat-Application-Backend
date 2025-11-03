@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 @MappedSuperclass
 public abstract class BaseDate extends PersistentObject {
-
     private LocalDateTime createdAt;
 
     public BaseDate() {}

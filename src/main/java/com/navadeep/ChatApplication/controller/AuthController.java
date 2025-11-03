@@ -16,12 +16,12 @@ import org.apache.cxf.rs.security.cors.CrossOriginResourceSharing;
 import java.io.IOException;
 
 
-@Path("/auth")
-@CrossOriginResourceSharing(
-        allowOrigins = {"http://localhost:3000"},
-        allowCredentials = true,
-        maxAge = 3600 // Cache preflight response for 1 hour
-)
+
+//@CrossOriginResourceSharing(
+//        allowOrigins = {"http://localhost:3000"},
+//        allowCredentials = true,
+//        maxAge = 3600 // Cache preflight response for 1 hour
+//)
 public class AuthController {
 
     private AuthService authService;
@@ -106,6 +106,7 @@ public class AuthController {
 
         return Response.ok(user).build();
     }
+
 
 
 }

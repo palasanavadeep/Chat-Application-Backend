@@ -12,17 +12,27 @@
                 <param name="increment_size">1</param>
             </generator>
         </id>
-        <property name="createdAt" column="created_at" type="java.time.LocalDateTime"
+
+
+        <property name="createdAt"
+                  column="created_at"
+                  type="java.time.LocalDateTime"
                   not-null="true"/>
 
 
         <many-to-one name="user"
                      class="com.navadeep.ChatApplication.domain.UserLite"
-                     column="user_id" not-null="true"/>
+                     column="user_id"
+                     fetch="join"
+                     lazy="false"
+                     not-null="true"/>
 
         <many-to-one name="role"
                      class="com.navadeep.ChatApplication.domain.Lookup"
-                     column="role_id" not-null="true" lazy="proxy"/>
+                     column="role_id"
+                     not-null="true"
+                     fetch="join"
+                     lazy="false"/>
 
 
         <property name="leftAt" column="left_at" type="java.time.LocalDateTime"/>

@@ -2,10 +2,7 @@ package com.navadeep.ChatApplication.netty;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.navadeep.ChatApplication.domain.Conversation;
-import com.navadeep.ChatApplication.domain.ConversationParticipant;
-import com.navadeep.ChatApplication.domain.Message;
-import com.navadeep.ChatApplication.domain.User;
+import com.navadeep.ChatApplication.domain.*;
 import com.navadeep.ChatApplication.service.*;
 import com.navadeep.ChatApplication.utils.JwtUtil;
 import io.netty.buffer.Unpooled;
@@ -101,13 +98,27 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             switch (msg.getAction()) {
                 case "sendMessage" -> { // in service
                     System.out.println("hello");
+
                     byte[] file = getFile(msg);
                     String fileName = getFileName(msg);
+                    System.out.println("fileName ; "+fileName);
 
-                    Long conversationId = Long.parseLong(msg.getData().get("conversationId").toString());
-                    String messageContent = msg.getData().get("messageContent").toString();
+                    Map<String, Object> data = msg.getData();
 
-                    messageService.sendMessage(userId,conversationId,messageContent,file,fileName);
+                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
+                    String messageContent = data.get("messageContent") != null ? data.get("messageContent").toString() : null;
+
+                    System.out.println("messageContent : "+messageContent);
+                    try{
+                        if(conversationId != null){
+                            messageService.sendMessage(userId,conversationId,messageContent,file,fileName);
+                        }
+                    }
+                    catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+
 
                 }
                 case "editMessage" -> {
@@ -133,6 +144,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                 case "createNewConversation" -> {
 
                     Map<String, Object> data = msg.getData();
+                    System.out.println("in createNewConversation");
 
                     String type = data.get("type").toString();
                     String name = (data.get("name") != null) ? data.get("name").toString() : null;
@@ -148,6 +160,8 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
                     conversationService
                             .createConversation(userId,type,name,description,participants,conversationImageFile,fileName);
+
+                    System.out.println("in createNewConversation end");
 
                 }
                 case "updateConversation" -> {
@@ -228,11 +242,14 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                     Map<String, Object> data = msg.getData();
                     Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
 
-                    List<Message> conversationMessages = messageService
-                            .getMessageByConversationId(userId,conversationId);
+                    if(conversationId != null) {
+                        List<Message> conversationMessages = messageService
+                                .getMessageByConversationId(userId,conversationId);
 
-                    WsResponse wsResponse = WsResponse.success("getAllMessagesResponse", conversationMessages);
-                    sessionManager.broadcast(wsResponse,List.of(userId));
+                        WsResponse wsResponse = WsResponse.success("getAllMessagesResponse",
+                                Map.of("conversationId" , conversationId,"messages", conversationMessages));
+                        sessionManager.broadcast(wsResponse,List.of(userId));
+                    }
 
                 }
                 case "markMessageAsRead" -> {
@@ -247,6 +264,17 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                     Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
 
                     messageReceiptService.markMessagesInConversationAsRead(userId,conversationId);
+                }
+
+                case "searchUser"->{
+                    Map<String, Object> data = msg.getData();
+                    String username = data.get("username") != null ? data.get("username").toString() : null;
+                    UserLite userResult= null;
+                    if(username != null){
+                        userResult = userService.findByUsername(username);
+                    }
+                    WsResponse wsResponse = WsResponse.success("searchUserResponse", List.of(userResult));
+                    sessionManager.broadcast(wsResponse,List.of(userId));
                 }
 
                 default -> {

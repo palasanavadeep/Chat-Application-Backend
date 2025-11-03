@@ -22,7 +22,7 @@ public class ConversationParticipantDaoImpl extends BaseDaoImpl<ConversationPart
     @Override
     @SuppressWarnings("unchecked")
     public List<Long> findParticipantUserIdsByConversationId(Long conversationId) {
-        String sql = "SELECT user_id FROM conversation_participant " +
+        String sql = "SELECT user_id FROM conversation_participants " +
                 "WHERE conversation_id = :conversationId AND left_at IS NULL";
 
         try (Session session = sessionFactory.openSession()) {

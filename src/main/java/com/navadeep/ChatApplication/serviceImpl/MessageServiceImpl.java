@@ -63,14 +63,19 @@ public class MessageServiceImpl implements MessageService {
         }
 
         Message savedMessage = messageDao.save(newMessage);
+        System.out.println("message saved in db");
         conversationService.updateLastMessage(conversationId,savedMessage);
+
+        System.out.println("in sendMessge after lastmessage");
 
 
         List<Long> participants = conversationParticipantService.findParticipantUserIdsByConversationId(conversationId);
-
+        System.out.println("participant ids : "+participants);
         // broadcast messages to all participants
         WsResponse wsResponse = WsResponse.success("newMessage",savedMessage);
         sessionManager.broadcast(wsResponse,participants);
+
+        System.out.println("in sendMessge after broadcast");
 
         // in future can be processed through queues
         List<MessageReceipt> messageReceipts = new ArrayList<>();
@@ -134,9 +139,9 @@ public class MessageServiceImpl implements MessageService {
         messageReceiptService.update(myReceipt);
 
         // broadcast to userId
-//        WsResponse wsResponse = WsResponse
-//                .success("deletedMessage", myReceipt.getMessage());
-//        sessionManager.broadcast(wsResponse, List.of(userId));
+        WsResponse wsResponse = WsResponse
+                .success("deletedMessage", myReceipt.getMessage());
+        sessionManager.broadcast(wsResponse, List.of(userId));
 
 
     }

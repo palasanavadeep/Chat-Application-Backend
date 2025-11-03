@@ -15,12 +15,27 @@
     <!--    Rest controllers -->
     <bean id="hello" class="com.navadeep.ChatApplication.controller.Hello"/>
 
-    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+<!--    <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->
+<!--        <property name="driverClassName" value="org.postgresql.Driver"/>-->
+<!--        <property name="url" value="jdbc:postgresql://localhost:5432/chatAppDB"/>-->
+<!--        <property name="username" value="postgres"/>-->
+<!--        <property name="password" value="1234"/>-->
+<!--    </bean>-->
+    <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
         <property name="driverClassName" value="org.postgresql.Driver"/>
-        <property name="url" value="jdbc:postgresql://localhost:5432/chatAppDB"/>
+        <property name="jdbcUrl" value="jdbc:postgresql://localhost:5432/chatAppDB"/>
         <property name="username" value="postgres"/>
         <property name="password" value="1234"/>
+
+        <!-- Connection pool configuration -->
+        <property name="maximumPoolSize" value="10"/> <!-- Maximum number of connections in the pool -->
+        <property name="minimumIdle" value="5"/> <!-- Minimum number of idle connections -->
+        <property name="idleTimeout" value="600000"/> <!-- Time a connection can stay idle before being removed -->
+        <property name="maxLifetime" value="1800000"/> <!-- Max lifetime of a connection in ms -->
+        <property name="connectionTimeout" value="30000"/> <!-- Maximum time to wait for a connection from the pool -->
+        <property name="poolName" value="HikariCP"/>
     </bean>
+
 
     <!-- Liquibase configuration -->
     <bean id="liquibase" class="liquibase.integration.spring.SpringLiquibase">
@@ -65,7 +80,10 @@
         <property name="secretKey" value="your-very-secret-long-key-12345678901234567890"/>
         <property name="expirationMs" value="86400000"/> <!-- 24 hours -->
     </bean>
-    <bean id="sessionManager" class="com.navadeep.ChatApplication.netty.SessionManager"/>
+    <bean id="objectMapper" class="com.navadeep.ChatApplication.utils.ObjectMapperFactoryBean"/>
+    <bean id="sessionManager" class="com.navadeep.ChatApplication.netty.SessionManager">
+        <property name="mapper" ref="objectMapper"/>
+    </bean>
 
 
 

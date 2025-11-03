@@ -4,8 +4,6 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-
-//@JsonInclude(JsonInclude.Include.NON_NULL)
 @XmlRootElement(name = "userLite")
 public class UserLite extends BaseDate {
     private String username;
@@ -13,6 +11,8 @@ public class UserLite extends BaseDate {
     private Attachment profileImage;
     private boolean status;
     private LocalDateTime lastSeenAt;
+
+
 
     public UserLite(String username, String displayName, Attachment profileImage, boolean status, LocalDateTime lastSeenAt) {
         this.username = username;

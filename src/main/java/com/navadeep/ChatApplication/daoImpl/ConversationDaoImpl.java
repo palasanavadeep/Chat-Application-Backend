@@ -30,7 +30,6 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
             if (conversation != null) {
                 participant.setLeftAt(null);
                 conversation.getConversationParticipants().add(participant);
-                session.persist(participant); // persist participant
                 session.merge(conversation);
             }
             tx.commit();
@@ -61,10 +60,11 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
             String hql = """
             select distinct c
             from Conversation c
-            join fetch c.conversationParticipants cp
+            join c.conversationParticipants cpUser
+            join fetch c.conversationParticipants cpAll
             left join fetch c.lastMessage lm
-            where cp.user.id = :userId
-              and cp.leftAt is null
+            where cpUser.user.id = :userId
+              and cpUser.leftAt is null
             order by lm.createdAt desc
         """;
 
@@ -76,26 +76,29 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
             e.printStackTrace();
             return null;
         }
-
     }
+
 
     // can optimize from conversationParticipants (Native SQL)
     @Override
     public List<ConversationParticipant> getAllParticipants(Long conversationId) {
-        try(Session session = sessionFactory.openSession()){
-            Conversation conversation = session.get(Conversation.class, conversationId);
-            return conversation != null
-                    ? conversation.getConversationParticipants()
-                    .stream()
-                    .filter(p -> p.getLeftAt() == null)
-                    .collect(Collectors.toList())
-                    : Collections.emptyList();
-        }
-        catch (HibernateException e){
+        try (Session session = sessionFactory.openSession()) {
+            String hql = """
+            select cp
+            from ConversationParticipant cp
+            join fetch cp.user
+            where cp.conversation.id = :conversationId
+              and cp.leftAt is null
+        """;
+            return session.createQuery(hql, ConversationParticipant.class)
+                    .setParameter("conversationId", conversationId)
+                    .list();
+        } catch (HibernateException e) {
             e.printStackTrace();
             return Collections.emptyList();
         }
     }
+
 
 
 }

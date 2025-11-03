@@ -13,6 +13,18 @@ public class Message extends BaseDate {
     private Attachment attachment;
     private LocalDateTime editedAt;
 
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "sender=" + sender +
+                ", conversationId=" + conversationId +
+                ", body='" + body + '\'' +
+                ", attachment=" + attachment +
+                ", editedAt=" + editedAt +
+                '}';
+    }
+
     public Message() {}
     public UserLite getSender() {
         return sender;
