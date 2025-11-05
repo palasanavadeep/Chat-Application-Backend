@@ -5,12 +5,18 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 
 public class BaseDaoImpl<T> implements BaseDao<T> {
 
+
     protected SessionFactory sessionFactory;
-    private Class<T> tClass;
+    private final Class<T> tClass;
+
+    Logger log =  LoggerFactory.getLogger(this.getClass());
 
     public BaseDaoImpl(SessionFactory sessionFactory, Class<T> tClass) {
         this.sessionFactory = sessionFactory;
@@ -23,7 +29,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
             return session.get(tClass, id);
         }
         catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error in findById({}) : {}",id,e.getMessage());
             return null;
         }
     }
@@ -34,7 +40,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
             return session.createQuery("from " + tClass.getName(), tClass).list();
         }
         catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error in findAll() {}",e.getMessage());
             return null;
         }
     }
@@ -48,7 +54,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
             tx.commit();
             return entity;
         } catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error in save({}) : {}",entity,e.getMessage());
             if (tx != null) tx.rollback();
             throw e;
         }
@@ -63,6 +69,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
             tx.commit();
             return entity;
         } catch (HibernateException e) {
+            log.error("Error in update({}) : {}",entity,e.getMessage());
             if (tx != null) tx.rollback();
             throw e;
         }
@@ -76,6 +83,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
             session.remove(entity);
             tx.commit();
         } catch (HibernateException e) {
+            log.error("Error in delete({}) : {}",entity,e.getMessage());
             if (tx != null) tx.rollback();
             throw e;
         }

@@ -30,9 +30,9 @@
                 <constraints nullable="false"/>
             </column>
 
-            <column name="last_seen_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="last_seen_at" type="BIGINT"/>
 
-            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="created_at" type="BIGINT"/>
 
         </createTable>
     </changeSet>

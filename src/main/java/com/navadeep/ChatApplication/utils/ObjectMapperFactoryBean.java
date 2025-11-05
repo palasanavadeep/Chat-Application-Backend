@@ -18,8 +18,8 @@ public class ObjectMapperFactoryBean implements FactoryBean<ObjectMapper> {
     @Override
     public ObjectMapper getObject() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+//        mapper.registerModule(new JavaTimeModule());
+//        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         for (Module module : modules) {
             mapper.registerModule(module);
         }

@@ -33,8 +33,8 @@
                              references="lookups(id)"/>
             </column>
 
-            <column name="created_at" type="TIMESTAMP"/>
-            <column name="left_at" type="TIMESTAMP"/>
+            <column name="created_at" type="BIGINT"/>
+            <column name="left_at" type="BIGINT"/>
 
             <column name="is_muted" type="BOOLEAN" defaultValueBoolean="false">
                 <constraints nullable="false"/>

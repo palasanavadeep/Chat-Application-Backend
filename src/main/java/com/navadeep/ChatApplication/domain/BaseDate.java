@@ -1,22 +1,17 @@
 package com.navadeep.ChatApplication.domain;
 
 import jakarta.persistence.MappedSuperclass;
-import jakarta.xml.bind.annotation.XmlRootElement;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 
 @MappedSuperclass
 public abstract class BaseDate extends PersistentObject {
-    private LocalDateTime createdAt;
+    private Long createdAt;
 
     public BaseDate() {}
-    public LocalDateTime getCreatedAt() {
+    public Long getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Long createdAt) {
         this.createdAt = createdAt;
     }
 

@@ -15,14 +15,14 @@
         <property name="username" column="username" not-null="true" unique="true"/>
         <property name="displayName" column="display_name"/>
         <property name="status" column="status" not-null="true" />
-        <property name="lastSeenAt" column="last_seen_at" type="java.time.LocalDateTime"/>
-        <property name="createdAt" column="created_at" type="java.time.LocalDateTime"/>
+        <property name="createdAt" column="created_at" type="long" not-null="true"/>
+        <property name="lastSeenAt" column="last_seen_at" type="long"/>
 
         <many-to-one name="profileImage"
                      class="com.navadeep.ChatApplication.domain.Attachment"
                      column="profile_image_id"
                      fetch="join"
-        lazy="false"/>
+                     lazy="false"/>
 
         <!-- Inheritance -->
         <joined-subclass name="com.navadeep.ChatApplication.domain.User" table="users">
@@ -31,33 +31,4 @@
             <property name="password" column="password" not-null="true"/>
         </joined-subclass>
     </class>
-
-
-    <!-- Parent class: UserLite -->
-<!--    <class name="com.navadeep.ChatApplication.domain.UserLite" table="users" discriminator-value="LITE">-->
-<!--        <id name="id" column="id" type="long">-->
-<!--            <generator class="native"/>-->
-<!--        </id>-->
-
-<!--        &lt;!&ndash; Discriminator for inheritance &ndash;&gt;-->
-<!--        <discriminator column="user_type" type="string"/>-->
-
-<!--        &lt;!&ndash; Properties from UserLite &ndash;&gt;-->
-<!--        <property name="username" column="username" type="string" not-null="true"/>-->
-<!--        <property name="displayName" column="display_name" type="string"/>-->
-<!--        <property name="status" column="status" type="boolean" not-null="true"/>-->
-<!--        <property name="lastSeenAt" column="last_seen_at" type="java.time.LocalDateTime"/>-->
-
-<!--        &lt;!&ndash; Many-to-one relationship with Attachment &ndash;&gt;-->
-<!--        <many-to-one name="profileImage" class="com.navadeep.ChatApplication.domain.Attachment"-->
-<!--                     column="profile_image_id" />-->
-
-<!--        &lt;!&ndash; Subclass: User &ndash;&gt;-->
-<!--        <subclass name="com.navadeep.ChatApplication.domain.User" discriminator-value="USER">-->
-<!--            &lt;!&ndash; Properties specific to User &ndash;&gt;-->
-<!--            <property name="email" column="email" type="string" not-null="true"/>-->
-<!--            <property name="password" column="password" type="string" not-null="true"/>-->
-<!--            <property name="createdAt" column="created_at" type="java.time.LocalDateTime"/>-->
-<!--        </subclass>-->
-<!--    </class>-->
 </hibernate-mapping>

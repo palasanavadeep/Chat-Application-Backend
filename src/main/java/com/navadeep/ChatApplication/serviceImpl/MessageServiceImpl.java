@@ -2,21 +2,15 @@ package com.navadeep.ChatApplication.serviceImpl;
 
 
 import com.navadeep.ChatApplication.dao.MessageDao;
-import com.navadeep.ChatApplication.dao.MessageReceiptDao;
-import com.navadeep.ChatApplication.dao.UserDao;
 import com.navadeep.ChatApplication.domain.*;
 import com.navadeep.ChatApplication.netty.SessionManager;
 import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.*;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class MessageServiceImpl implements MessageService {
 
@@ -28,6 +22,9 @@ public class MessageServiceImpl implements MessageService {
     private UserService userService;
     private AttachmentService attachmentService;
     private SessionManager sessionManager;
+
+    private static final Logger log =  LoggerFactory.getLogger(MessageServiceImpl.class);
+
 
     public MessageServiceImpl(MessageDao messageDao,
                               MessageReceiptService messageReceiptService,
@@ -55,7 +52,7 @@ public class MessageServiceImpl implements MessageService {
         newMessage.setConversationId(conversationId);
         newMessage.setBody(messageContent);
         newMessage.setEditedAt(null);
-        newMessage.setCreatedAt(LocalDateTime.now());
+        newMessage.setCreatedAt(System.currentTimeMillis());
 
         if(attachment!=null && attachment.length>0 && attachmentName!=null){
             Attachment messageAttachment = attachmentService.save(attachmentName,attachment);
@@ -63,19 +60,14 @@ public class MessageServiceImpl implements MessageService {
         }
 
         Message savedMessage = messageDao.save(newMessage);
-        System.out.println("message saved in db");
-        conversationService.updateLastMessage(conversationId,savedMessage);
 
-        System.out.println("in sendMessge after lastmessage");
+        conversationService.updateLastMessage(conversationId,savedMessage);
 
 
         List<Long> participants = conversationParticipantService.findParticipantUserIdsByConversationId(conversationId);
-        System.out.println("participant ids : "+participants);
         // broadcast messages to all participants
         WsResponse wsResponse = WsResponse.success("newMessage",savedMessage);
         sessionManager.broadcast(wsResponse,participants);
-
-        System.out.println("in sendMessge after broadcast");
 
         // in future can be processed through queues
         List<MessageReceipt> messageReceipts = new ArrayList<>();
@@ -185,6 +177,11 @@ public class MessageServiceImpl implements MessageService {
             throw new RuntimeException("userId and conversationId cannot be null");
         }
 
-        return messageDao.findByConversationId(userId,conversationId);
+        List<Message> messages = messageDao.findByConversationId(userId,conversationId);
+
+        log.info("getMessageByConversationId {}",messages);
+        System.out.println("getMessageByConversationId"+messages);
+
+        return messages;
     }
 }

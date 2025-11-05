@@ -2,16 +2,13 @@ package com.navadeep.ChatApplication.domain;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 @XmlRootElement(name = "message")
 public class Message extends BaseDate {
     private UserLite sender;
     private Long conversationId;
     private String body;
     private Attachment attachment;
-    private LocalDateTime editedAt;
+    private Long editedAt;
 
 
     @Override
@@ -58,11 +55,11 @@ public class Message extends BaseDate {
         this.attachment = attachment;
     }
 
-    public LocalDateTime getEditedAt() {
+    public Long getEditedAt() {
         return editedAt;
     }
 
-    public void setEditedAt(LocalDateTime editedAt) {
+    public void setEditedAt(Long editedAt) {
         this.editedAt = editedAt;
     }
 }

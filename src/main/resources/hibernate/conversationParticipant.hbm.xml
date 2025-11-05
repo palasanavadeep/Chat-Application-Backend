@@ -13,10 +13,11 @@
             </generator>
         </id>
 
+        <property name="conversationId" column="conversation_id" insert="false" update="false"/>
 
         <property name="createdAt"
                   column="created_at"
-                  type="java.time.LocalDateTime"
+                  type="long"
                   not-null="true"/>
 
 
@@ -35,7 +36,7 @@
                      lazy="false"/>
 
 
-        <property name="leftAt" column="left_at" type="java.time.LocalDateTime"/>
+        <property name="leftAt" column="left_at" type="long"/>
 
         <property name="isMuted" column="is_muted" type="boolean" not-null="true"/>
 

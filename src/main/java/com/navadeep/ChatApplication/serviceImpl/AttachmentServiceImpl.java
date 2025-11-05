@@ -2,28 +2,30 @@ package com.navadeep.ChatApplication.serviceImpl;
 
 
 import com.navadeep.ChatApplication.dao.AttachmentDao;
-import com.navadeep.ChatApplication.dao.LookupDao;
 import com.navadeep.ChatApplication.domain.Attachment;
 import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.LookupService;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class AttachmentServiceImpl implements AttachmentService {
 
-    private AttachmentDao attachmentDao;
-    private LookupService lookupService;
+    private final AttachmentDao attachmentDao;
+    private final LookupService lookupService;
 
+    Logger log =  LoggerFactory.getLogger(AttachmentServiceImpl.class);
 
     public AttachmentServiceImpl(AttachmentDao attachmentDao,LookupService lookupService) {
-        this.attachmentDao = (AttachmentDao) attachmentDao;
+        this.attachmentDao = attachmentDao;
         this.lookupService = lookupService;
     }
 
     @Override
     public Attachment save(String fileName,byte[] file) {
         if(file==null || file.length==0){
+            log.warn("file not found ");
             throw new RuntimeException("file is null or empty");
         }
         String fileType = getFileType(fileName);
@@ -36,34 +38,30 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     public Attachment update(Attachment attachment) {
         if (attachment == null || attachment.getId() == null) {
+            log.warn("attachment or attachmentId is null");
             throw new IllegalArgumentException("Attachment and ID cannot be null");
         }
-        try {
-            return attachmentDao.update(attachment);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to update attachment", e);
-        }
+        return attachmentDao.update(attachment);
     }
 
     @Override
     public void delete(Long id) {
         if (id == null) {
+            log.warn("can't delete ID is null");
             throw new IllegalArgumentException("ID cannot be null");
         }
-        try {
-            Attachment attachment = attachmentDao.findById(id);
-            if(attachment == null) {
-                throw new IllegalArgumentException("Attachment not found");
-            }
-            attachmentDao.delete(attachment);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to delete attachment", e);
+        Attachment attachment = attachmentDao.findById(id);
+        if(attachment == null) {
+            log.warn("attachment with id {} not found ",id);
+            throw new IllegalArgumentException("Attachment not found for Id :"+id);
         }
+        attachmentDao.delete(attachment);
     }
 
     @Override
     public Attachment findById(Long id) {
         if (id == null) {
+            log.warn("id is null");
             throw new IllegalArgumentException("ID cannot be null");
         }
         return attachmentDao.findById(id);
@@ -72,11 +70,11 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     public List<Attachment> findAll() {
         try {
-            attachmentDao.findAll();
+            return attachmentDao.findAll();
         } catch (Exception e) {
+            log.error("Error Message : {}", e.getMessage(), e);
             throw new RuntimeException("Failed to find all attachments", e);
         }
-        return List.of();
     }
 
 

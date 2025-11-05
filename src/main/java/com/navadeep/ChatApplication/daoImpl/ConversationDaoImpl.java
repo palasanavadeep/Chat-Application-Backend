@@ -3,16 +3,16 @@ package com.navadeep.ChatApplication.daoImpl;
 import com.navadeep.ChatApplication.dao.ConversationDao;
 import com.navadeep.ChatApplication.domain.Conversation;
 import com.navadeep.ChatApplication.domain.ConversationParticipant;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-
-
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements ConversationDao {
 
@@ -28,12 +28,14 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
             tx = session.beginTransaction();
             Conversation conversation = session.get(Conversation.class, conversationId);
             if (conversation != null) {
+                participant.setCreatedAt(System.currentTimeMillis());
                 participant.setLeftAt(null);
                 conversation.getConversationParticipants().add(participant);
                 session.merge(conversation);
             }
             tx.commit();
         } catch (HibernateException e) {
+            log.error("Error in Adding Participant : {}",participant,e);
             if (tx != null) tx.rollback();
             throw e;
         }
@@ -45,35 +47,41 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
         try (Session session = sessionFactory.openSession()) {
             tx = session.beginTransaction();
             ConversationParticipant participant = session.get(ConversationParticipant.class, participantId);
-            participant.setLeftAt(LocalDateTime.now());
+            participant.setLeftAt(System.currentTimeMillis());
             session.merge(participant);
             tx.commit();
         } catch (Exception e) {
+            log.error("Error in removing participant : {}",participantId,e);
             if (tx != null) tx.rollback();
             throw e;
         }
     }
 
+//    check if userId's participant is not leftAt also
     @Override
     public List<Conversation> findUserConversations(Long userId) {
         try(Session session = sessionFactory.openSession()){
-            String hql = """
-            select distinct c
-            from Conversation c
-            join c.conversationParticipants cpUser
-            join fetch c.conversationParticipants cpAll
-            left join fetch c.lastMessage lm
-            where cpUser.user.id = :userId
-              and cpUser.leftAt is null
-            order by lm.createdAt desc
-        """;
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<Conversation> cq = cb.createQuery(Conversation.class);
+            Root<Conversation> conversationRoot = cq.from(Conversation.class);
 
-            return session.createQuery(hql, Conversation.class)
-                    .setParameter("userId", userId)
-                    .list();
+            // Join conversation -> participants
+            Join<Conversation, ConversationParticipant> participantsJoin =
+                    conversationRoot.join("conversationParticipants");
+
+            cq.select(conversationRoot)
+                    .distinct(true)
+                    .where(
+                            cb.and(
+                                    cb.equal(participantsJoin.get("user").get("id"), userId),
+                                    cb.isNull(participantsJoin.get("leftAt"))
+                            )
+                    );
+
+            return session.createQuery(cq).getResultList();
         }
         catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error in findUserConversations :: ",e);
             return null;
         }
     }
@@ -83,50 +91,23 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
     @Override
     public List<ConversationParticipant> getAllParticipants(Long conversationId) {
         try (Session session = sessionFactory.openSession()) {
-            String hql = """
-            select cp
-            from ConversationParticipant cp
-            join fetch cp.user
-            where cp.conversation.id = :conversationId
-              and cp.leftAt is null
-        """;
-            return session.createQuery(hql, ConversationParticipant.class)
-                    .setParameter("conversationId", conversationId)
-                    .list();
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<ConversationParticipant> cq = cb.createQuery(ConversationParticipant.class);
+            Root<ConversationParticipant> participantRoot = cq.from(ConversationParticipant.class);
+
+            cq.select(participantRoot)
+                    .where(
+                            cb.and(
+                                    cb.equal(participantRoot.get("conversationId"), conversationId),
+                                    cb.isNull(participantRoot.get("leftAt"))
+                            )
+                    );
+
+            return session.createQuery(cq).getResultList();
         } catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error in findAllParticipants :: ",e);
             return Collections.emptyList();
         }
     }
 
-
-
 }
-
-
-//    @Override
-//    public List<Conversation> findByUserId(Long userId) {
-//        Session session = sessionFactory.getCurrentSession();
-//
-//        try {
-//            String hql = """
-//            SELECT DISTINCT c
-//            FROM Conversation c
-//            JOIN c.members m
-//            WHERE m.user.id = :userId
-//            AND c.id NOT IN (
-//                SELECT ev.message.conversation.id
-//                FROM UserEvent ev
-//                WHERE ev.user.id = :userId
-//            )
-//            """;
-//
-//            Query<Conversation> query = session.createQuery(hql, Conversation.class);
-//            query.setParameter("userId", user.getId());
-//
-//            return query.getResultList();
-//        } catch (HibernateException e) {
-//            e.printStackTrace();
-//            return List.of();
-//        }
-//    }

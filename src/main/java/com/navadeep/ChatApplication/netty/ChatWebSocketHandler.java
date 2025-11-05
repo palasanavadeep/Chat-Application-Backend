@@ -239,18 +239,24 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                     sessionManager.broadcast(wsResponse,List.of(userId));
                 }
                 case "getAllMessages" -> {
-                    Map<String, Object> data = msg.getData();
-                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
+                    try{
+                        Map<String, Object> data = msg.getData();
+                        Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
 
-                    if(conversationId != null) {
-                        List<Message> conversationMessages = messageService
-                                .getMessageByConversationId(userId,conversationId);
+                        if(conversationId != null) {
+                            System.out.println("getAllMessages netty handler conversationId "+conversationId);
+                            List<Message> conversationMessages = messageService
+                                    .getMessageByConversationId(userId,conversationId);
 
-                        WsResponse wsResponse = WsResponse.success("getAllMessagesResponse",
-                                Map.of("conversationId" , conversationId,"messages", conversationMessages));
-                        sessionManager.broadcast(wsResponse,List.of(userId));
+                            WsResponse wsResponse = WsResponse.success("getAllMessagesResponse",
+                                    Map.of("conversationId" , conversationId,"messages", conversationMessages));
+                            sessionManager.broadcast(wsResponse,List.of(userId));
+                        }
                     }
+                    catch (Exception e){
+                        System.out.println("err :: "+e.getMessage());
 
+                    }
                 }
                 case "markMessageAsRead" -> {
                     Map<String, Object> data = msg.getData();

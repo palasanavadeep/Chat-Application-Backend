@@ -1,15 +1,13 @@
 package com.navadeep.ChatApplication.daoImpl;
 
 import com.navadeep.ChatApplication.dao.ConversationParticipantDao;
-import com.navadeep.ChatApplication.domain.Conversation;
 import com.navadeep.ChatApplication.domain.ConversationParticipant;
-import com.navadeep.ChatApplication.domain.UserLite;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.query.Query;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -20,74 +18,52 @@ public class ConversationParticipantDaoImpl extends BaseDaoImpl<ConversationPart
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<Long> findParticipantUserIdsByConversationId(Long conversationId) {
-        String sql = "SELECT user_id FROM conversation_participants " +
-                "WHERE conversation_id = :conversationId AND left_at IS NULL";
-
         try (Session session = sessionFactory.openSession()) {
-            return session.createNativeQuery(sql)
-                    .setParameter("conversationId", conversationId)
-                    .list();
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+            Root<ConversationParticipant> participantRoot = cq.from(ConversationParticipant.class);
+
+            cq.select(participantRoot.get("user").get("id"))
+                    .where(
+                            cb.and(
+                                    cb.equal(participantRoot.get("conversationId"), conversationId),
+                                    cb.isNull(participantRoot.get("leftAt"))
+                            )
+                    );
+
+            return session.createQuery(cq).getResultList();
+
         } catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error Message :: {}", e.getMessage(), e);
             return Collections.emptyList();
         }
     }
 
 
-
     @Override
     public ConversationParticipant getParticipantByConversationIdAndUserId(Long conversationId, Long userId) {
-        try(Session session = sessionFactory.openSession()){
+        try (Session session = sessionFactory.openSession()) {
 
-            String sql = "SELECT * FROM conversation_participant WHERE user_id = :userId AND conversation_id = :conversationId";
-            ConversationParticipant participant = session
-                    .createNativeQuery(sql, ConversationParticipant.class)
-                    .setParameter("userId", userId)
-                    .setParameter("conversationId", conversationId)
-                    .uniqueResult();
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<ConversationParticipant> cq = cb.createQuery(ConversationParticipant.class);
+            Root<ConversationParticipant> participantRoot = cq.from(ConversationParticipant.class);
 
-            return participant;
+            cq.select(participantRoot)
+                    .where(
+                            cb.and(
+                                    cb.equal(participantRoot.get("conversationId"), conversationId),
+                                    cb.equal(participantRoot.get("user").get("id"), userId)
+                            )
+                    );
 
-        }
-        catch(HibernateException ex){
-            ex.printStackTrace();
+            return session.createQuery(cq).uniqueResultOptional().orElse(null);
+
+        } catch (HibernateException e) {
+            log.error("Error Message : {}", e.getMessage(), e);
             return null;
         }
     }
 
 }
-
-//@Override
-//public List<ConversationParticipant> findByConversation(Conversation conversation) {
-//    Session session = sessionFactory.getCurrentSession();
-//    try {
-//        Query<ConversationParticipant> query = session.createQuery(
-//                "FROM ConversationParticipant WHERE conversation.id = :conversationId",
-//                ConversationParticipant.class);
-//        query.setParameter("conversationId", conversation.getId());
-//        List<ConversationParticipant> result = query.getResultList();
-//        return result;
-//    } catch (HibernateException e) {
-//        e.printStackTrace();
-//        return null;
-//    }
-//}
-//
-//@Override
-//public ConversationParticipant findByConversationAndUser(Conversation conversation, UserLite user) {
-//    Session session = sessionFactory.getCurrentSession();
-//    try {
-//        Query<ConversationParticipant> query = session.createQuery(
-//                "FROM ConversationParticipant WHERE conversation.id = :conversationId AND user.id = :userId",
-//                ConversationParticipant.class);
-//        query.setParameter("conversationId", conversation.getId());
-//        query.setParameter("userId", user.getId());
-//        ConversationParticipant result = query.uniqueResult();
-//        return result;
-//    } catch (HibernateException e) {
-//        e.printStackTrace();
-//        return null;
-//    }
-//}

@@ -2,12 +2,12 @@ package com.navadeep.ChatApplication.daoImpl;
 
 import com.navadeep.ChatApplication.dao.LookupDao;
 import com.navadeep.ChatApplication.domain.Lookup;
-import com.navadeep.ChatApplication.domain.User;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.query.Query;
 
 import java.util.List;
 
@@ -20,27 +20,36 @@ public class LookupDaoImpl extends BaseDaoImpl<Lookup> implements LookupDao {
     @Override
     public List<Lookup> findByCategory(String category) {
         try (Session session = sessionFactory.openSession()){
-            Query<Lookup> query = session.createQuery("FROM Lookup WHERE lookupCategory = :category", Lookup.class);
-            query.setParameter("category", category);
-            List<Lookup> result = query.getResultList();
-            return result;
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<Lookup> cq = cb.createQuery(Lookup.class);
+            Root<Lookup> lookupRoot = cq.from(Lookup.class);
+
+            cq.select(lookupRoot)
+                    .where(cb.equal(lookupRoot.get("lookupCategory"), category));
+
+            return session.createQuery(cq).getResultList();
         } catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error Message :: {}",e.getMessage(),e);
             return null;
         }
     }
 
     @Override
     public Lookup findByCode(String code) {
-        System.out.println("code:"+code);
         try (Session session = sessionFactory.openSession()) {
 
-            return session.createQuery("from Lookup where lookupCode = :code", Lookup.class)
-                    .setParameter("code", code)
-                    .uniqueResult();
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<Lookup> cq = cb.createQuery(Lookup.class);
+            Root<Lookup> lookupRoot = cq.from(Lookup.class);
+
+            cq.select(lookupRoot)
+                    .where(cb.equal(lookupRoot.get("lookupCode"), code));
+
+            return session.createQuery(cq).uniqueResultOptional().orElse(null);
         }
         catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error Message :: {}",e.getMessage(),e);
             return null;
         }
     }

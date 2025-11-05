@@ -2,6 +2,9 @@ package com.navadeep.ChatApplication.daoImpl;
 
 import com.navadeep.ChatApplication.dao.UserLiteDao;
 import com.navadeep.ChatApplication.domain.UserLite;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -15,12 +18,20 @@ public class UserLiteDaoImpl extends BaseDaoImpl<UserLite> implements UserLiteDa
     @Override
     public UserLite findByUsername(String username) {
         try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("from UserLite where username = :uname", UserLite.class)
-                    .setParameter("uname", username)
-                    .uniqueResult();
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<UserLite> cq = cb.createQuery(UserLite.class);
+            Root<UserLite> userLiteRoot = cq.from(UserLite.class);
+
+            cq.select(userLiteRoot)
+                    .where(
+                            cb.equal(userLiteRoot.get("username"), username)
+                    );
+
+            return session.createQuery(cq).uniqueResultOptional().orElse(null);
         }
         catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error Message : {}",e.getMessage(),e);
             return null;
         }
     }

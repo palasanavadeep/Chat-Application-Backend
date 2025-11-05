@@ -37,8 +37,8 @@
                              references="attachments(id)"/>
             </column>
 
-            <column name="created_at" type="TIMESTAMP"/>
-            <column name="edited_at" type="TIMESTAMP"/>
+            <column name="created_at" type="BIGINT"/>
+            <column name="edited_at" type="BIGINT"/>
 
         </createTable>
     </changeSet>

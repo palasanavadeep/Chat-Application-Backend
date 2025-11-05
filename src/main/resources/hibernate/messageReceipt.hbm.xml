@@ -14,11 +14,14 @@
         <many-to-one name="message"
                      column="message_id"
                      class="com.navadeep.ChatApplication.domain.Message"
-                     lazy="proxy"/>
+                     fetch="join"
+                     lazy="false"/>
         <property name="userId" column="user_id" type="long"/>
         <many-to-one name="status"
                      column="status_id"
-                     class="com.navadeep.ChatApplication.domain.Lookup"/>
+                     class="com.navadeep.ChatApplication.domain.Lookup"
+                        fetch="join"
+                        lazy="false"/>
 
     </class>
 </hibernate-mapping>

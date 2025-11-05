@@ -1,9 +1,6 @@
 package com.navadeep.ChatApplication.domain;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @XmlRootElement(name = "conversation")

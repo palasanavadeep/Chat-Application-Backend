@@ -9,7 +9,7 @@ import java.util.*;
 
 public class CorsInterceptor extends AbstractPhaseInterceptor<Message> {
 
-    private String allowOrigin = "*";
+    private String allowOrigin = "http://localhost:3000";
     private boolean allowCredentials = true;
     private String allowedMethods = "GET,POST,PUT,DELETE,OPTIONS";
     private String allowedHeaders = "Origin,Content-Type,Accept,Authorization,Content-Disposition,X-Requested-With";

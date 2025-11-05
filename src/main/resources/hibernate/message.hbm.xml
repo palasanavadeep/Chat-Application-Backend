@@ -12,7 +12,7 @@
                 <param name="increment_size">1</param>
             </generator>
         </id>
-        <property name="createdAt" column="created_at" type="java.time.LocalDateTime"
+        <property name="createdAt" column="created_at" type="long"
                   not-null="true"/>
 
         <many-to-one name="sender" class="com.navadeep.ChatApplication.domain.UserLite"
@@ -33,7 +33,7 @@
                     lazy="false"/>
 
 
-        <property name="editedAt" column="edited_at" type="java.time.LocalDateTime"/>
+        <property name="editedAt" column="edited_at" type="long"/>
 
     </class>
 </hibernate-mapping>

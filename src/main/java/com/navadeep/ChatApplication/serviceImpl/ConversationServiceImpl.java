@@ -6,20 +6,18 @@ import com.navadeep.ChatApplication.domain.*;
 import com.navadeep.ChatApplication.netty.SessionManager;
 import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.*;
-
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConversationServiceImpl implements ConversationService {
 
-    private ConversationDao conversationDao;
-    private ConversationParticipantDao conversationParticipantDao;
-    private MessageReceiptService messageReceiptService;
-    private UserLiteDao userLiteDao;
-    private ConversationParticipantService conversationParticipantService;
-    private LookupService lookupService;
-    private AttachmentService attachmentService;
+    private final ConversationDao conversationDao;
+    private final ConversationParticipantDao conversationParticipantDao;
+    private final MessageReceiptService messageReceiptService;
+    private final UserLiteDao userLiteDao;
+    private final ConversationParticipantService conversationParticipantService;
+    private final LookupService lookupService;
+    private final AttachmentService attachmentService;
     private SessionManager sessionManager;
 
     public ConversationServiceImpl(ConversationDao conversationDao, ConversationParticipantDao conversationParticipantDao, MessageReceiptService messageReceiptService, UserLiteDao userLiteDao, ConversationParticipantService conversationParticipantService, LookupService lookupService,AttachmentService attachmentService,SessionManager sessionManager) {
@@ -47,7 +45,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         Conversation newConversation = new Conversation();
         newConversation.setCreatedBy(creator);
-        newConversation.setCreatedAt(LocalDateTime.now());
+        newConversation.setCreatedAt(System.currentTimeMillis());
         newConversation.setType(lookupService.findByLookupCode(type));
 
 
@@ -107,7 +105,7 @@ public class ConversationServiceImpl implements ConversationService {
         conversationParticipant.setUser(user);
         conversationParticipant.setIsMuted(false);
         conversationParticipant.setIsPinned(false);
-        conversationParticipant.setCreatedAt(LocalDateTime.now());
+        conversationParticipant.setCreatedAt(System.currentTimeMillis());
         conversationParticipant.setRole(lookupService.findByLookupCode(role.toUpperCase()));
         return conversationParticipant;
     }
@@ -201,15 +199,16 @@ public class ConversationServiceImpl implements ConversationService {
         }
 
         // Step 3: Fetch message receipts in batch
-        List<Object[]> receiptResults = messageReceiptService
+        List<MessageReceipt> receiptResults = messageReceiptService
                 .findMessageReceiptsByUserIdAndMessageIds(userId, lastMessageIds);
 
         Map<Long, Boolean> hasUnreadMap = receiptResults.stream()
                 .collect(Collectors.toMap(
-                        row -> (Long) row[0],
-                        row -> {
-                            String status = (String) row[1];
-                            return !"READ".equalsIgnoreCase(status) && !"DELETED".equalsIgnoreCase(status);
+                        mr -> mr.getMessage().getId(),
+                        mr -> {
+                            String status = mr.getStatus().getLookupCode();
+                            return !status.equalsIgnoreCase("READ")
+                                    && !status.equalsIgnoreCase("DELETED");
                         }
                 ));
 
@@ -229,7 +228,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         System.out.println("in getUserConversations service method");
 
-        System.out.println("\n\n parts"+conversations.get(0).getConversationParticipants().size());
+        System.out.println("\n\n parts"+conversations);
 
         return conversations;
     }
@@ -315,7 +314,7 @@ public class ConversationServiceImpl implements ConversationService {
             throw new IllegalArgumentException("User : "+userId+" is not in the conversation"+conversationId);
         }
         if(participant.getUser().getId().equals(userId)){
-            participant.setLeftAt(LocalDateTime.now());
+            participant.setLeftAt(System.currentTimeMillis());
             conversationParticipantDao.update(participant);
 
             // broadcast to userId
@@ -329,6 +328,7 @@ public class ConversationServiceImpl implements ConversationService {
         }
         Conversation conversation = conversationDao.findById(id);
         if(conversation == null){
+
             throw new IllegalArgumentException("conversation is not found");
         }
         return conversation;

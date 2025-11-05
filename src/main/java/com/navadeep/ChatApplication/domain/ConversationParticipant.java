@@ -2,21 +2,20 @@ package com.navadeep.ChatApplication.domain;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @XmlRootElement(name = "conversationParticipant")
 public class ConversationParticipant extends BaseDate{
-
+    private Long conversationId;
     private UserLite user;
     private Lookup role;
-    private LocalDateTime leftAt;
+    private Long leftAt;
     private boolean isMuted;
     private boolean isPinned;
 
     @Override
     public String toString() {
         return "ConversationParticipant{" +
+                "conversationId=" + conversationId +
                 "user=" + user +
                 ", role=" + role +
                 ", leftAt=" + leftAt +
@@ -26,6 +25,15 @@ public class ConversationParticipant extends BaseDate{
     }
 
     public ConversationParticipant() {}
+
+    public Long getConversationId() {
+        return conversationId;
+    }
+
+    public void setConversationId(Long conversationId) {
+        this.conversationId = conversationId;
+    }
+
     public UserLite getUser() {
         return user;
     }
@@ -42,11 +50,11 @@ public class ConversationParticipant extends BaseDate{
         this.role = role;
     }
 
-    public LocalDateTime getLeftAt() {
+    public Long getLeftAt() {
         return leftAt;
     }
 
-    public void setLeftAt(LocalDateTime leftAt) {
+    public void setLeftAt(Long leftAt) {
         this.leftAt = leftAt;
     }
 

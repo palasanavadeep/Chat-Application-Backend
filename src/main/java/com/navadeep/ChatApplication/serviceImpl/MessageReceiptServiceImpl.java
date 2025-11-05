@@ -35,7 +35,7 @@ public class MessageReceiptServiceImpl implements MessageReceiptService {
     }
 
     @Override
-    public List<Object[]> findMessageReceiptsByUserIdAndMessageIds(Long userId, List<Long> messageIds) {
+    public List<MessageReceipt> findMessageReceiptsByUserIdAndMessageIds(Long userId, List<Long> messageIds) {
         return messageReceiptDao.findByUserIdAndMessageIds(userId,messageIds);
     }
 

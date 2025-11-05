@@ -2,9 +2,6 @@ package com.navadeep.ChatApplication.domain;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 @XmlRootElement(name = "user")
 public class User extends UserLite {
     private String email;

@@ -10,7 +10,7 @@ public interface MessageReceiptDao extends BaseDao<MessageReceipt>{
     void saveOrUpdateAll(List<MessageReceipt> receipts);
 
     // for getting lastMessage receipt (computing hasUnreadMessagesInConversation)
-    List<Object[]> findByUserIdAndMessageIds(Long userId,List<Long> messageIds);
+    List<MessageReceipt> findByUserIdAndMessageIds(Long userId,List<Long> messageIds);
 
     MessageReceipt findByUserIdAndMessageId(Long userId, Long messageId);
 

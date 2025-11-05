@@ -7,7 +7,7 @@
         <id name="id" column="id" type="long">
 
         </id>
-        <property name="createdAt" column="created_at" type="java.time.LocalDateTime"/>
+        <property name="createdAt" column="created_at" type="long"/>
     </class>
 
 </hibernate-mapping>

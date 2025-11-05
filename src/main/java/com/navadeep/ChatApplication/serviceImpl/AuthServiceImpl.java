@@ -5,57 +5,66 @@ import com.navadeep.ChatApplication.dao.UserLiteDao;
 import com.navadeep.ChatApplication.daoImpl.UserDaoImpl;
 import com.navadeep.ChatApplication.daoImpl.UserLiteDaoImpl;
 import com.navadeep.ChatApplication.domain.Attachment;
-import com.navadeep.ChatApplication.domain.Lookup;
 import com.navadeep.ChatApplication.domain.User;
 import com.navadeep.ChatApplication.domain.UserLite;
 import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.AuthService;
 import com.navadeep.ChatApplication.utils.JwtUtil;
-import org.apache.commons.io.IOUtils;
-import org.hibernate.Hibernate;
+import com.navadeep.ChatApplication.utils.ApiResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.Map;
 
-import java.time.LocalDateTime;
 
 public class AuthServiceImpl implements AuthService {
 
-    private UserDao userDao;
-    private UserLiteDao userLiteDao;  // remove useless
-    private AttachmentService attachmentService;
-    private JwtUtil jwtUtil;
+    private final UserDao userDao;
+    private final UserLiteDao userLiteDao;  // remove useless
+    private final AttachmentService attachmentService;
+    private final JwtUtil jwtUtil;
+
+    Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     AuthServiceImpl(UserDaoImpl userDao, UserLiteDaoImpl userLiteDao,AttachmentServiceImpl attachmentService, JwtUtil jwtUtil) {
-        this.userDao = (UserDaoImpl)userDao;
-        this.userLiteDao = (UserLiteDao) userLiteDao;
+        this.userDao = userDao;
+        this.userLiteDao = userLiteDao;
         this.attachmentService = attachmentService;
         this.jwtUtil = jwtUtil;
     }
 
     @Override
-    public AuthResponse login(String username, String password) {
+    public ApiResponse login(String username, String password) {
 
         User user = userDao.findByUsername(username);
         if(user == null){
+            log.warn("User with username {} not found",username);
             throw new RuntimeException("user with "+username+" not found");
         }
 
         if(!user.getPassword().equals(password)){
+            log.warn("Password Mismatch for User {}",username);
             throw new RuntimeException("Credentials didn't match! Try again..");
         }
 
         String token = jwtUtil.generateToken(user.getId().toString());  // generate token from JWT util.
 
-        return new AuthResponse(token,user);
+        return new ApiResponse(
+                true,
+                "Login Successful",
+                Map.of("token",token,"user",user));
     }
 
     @Override
-    public AuthResponse register(User user,byte[] file,String fileName) {
+    public ApiResponse register(User user,byte[] file,String fileName) {
 
         if(user.getPassword().length() < 6){
+            log.warn("Weak Password for User {}",user.getUsername());
             throw new RuntimeException("password length is less than 6");
         }
         // check if username already exist
         UserLite checkUsername = userLiteDao.findByUsername(user.getUsername());
         if(checkUsername != null){
+            log.warn("User with Username {} already exists",user.getUsername());
             throw new RuntimeException("username already is exist");
         }
 
@@ -66,21 +75,36 @@ public class AuthServiceImpl implements AuthService {
             user.setProfileImage(profileImageAttachment);
         }
 
-        user.setCreatedAt(LocalDateTime.now());
+        user.setCreatedAt(System.currentTimeMillis());
+        user.setLastSeenAt(System.currentTimeMillis());
+        user.setStatus(true);
 
         User newRegisteredUser = userDao.save(user);
         if(newRegisteredUser == null){
             throw new RuntimeException("something went wrong");
         }
 
-
-
         String token = jwtUtil.generateToken(user.getId().toString());
 
-        return new AuthResponse(token,newRegisteredUser);
+        return new ApiResponse(
+                true,
+                "Registration Successful",
+                Map.of("token",token,"user",newRegisteredUser)
+        );
 
     }
 
-    public record AuthResponse(String token, UserLite user) {
+    @Override
+    public void logout(Long userId) {
+        UserLite user = userLiteDao.findById(userId);
+        if(user == null){
+            log.warn("User with id {} not found",userId);
+            throw new RuntimeException("user not found");
+        }
+        user.setLastSeenAt(System.currentTimeMillis());
+        user.setStatus(false);
+
+        userLiteDao.update(user);
     }
+
 }

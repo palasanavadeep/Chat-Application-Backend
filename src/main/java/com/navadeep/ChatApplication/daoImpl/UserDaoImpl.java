@@ -2,14 +2,13 @@ package com.navadeep.ChatApplication.daoImpl;
 
 import com.navadeep.ChatApplication.dao.UserDao;
 import com.navadeep.ChatApplication.domain.User;
-import com.navadeep.ChatApplication.domain.UserLite;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
-import org.hibernate.query.Query;
 
-import java.util.List;
 
 public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
 
@@ -20,12 +19,20 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
     @Override
     public User findByEmail(String email) {
         try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("from User where email = :email", User.class)
-                    .setParameter("email", email)
-                    .uniqueResult();
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<User> cq = cb.createQuery(User.class);
+            Root<User> userRoot = cq.from(User.class);
+
+            cq.select(userRoot)
+                    .where(
+                            cb.equal(userRoot.get("email"), email)
+                    );
+
+            return session.createQuery(cq).uniqueResultOptional().orElse(null);
         }
         catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error Message : {}",e.getMessage(),e);
             return null;
         }
     }
@@ -33,12 +40,20 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
     @Override
     public User findByUsername(String username) {
         try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("from User where username = :username", User.class)
-                    .setParameter("username", username)
-                    .uniqueResult();
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<User> cq = cb.createQuery(User.class);
+            Root<User> userRoot = cq.from(User.class);
+
+            cq.select(userRoot)
+                    .where(
+                            cb.equal(userRoot.get("username"), username)
+                    );
+
+            return session.createQuery(cq).uniqueResultOptional().orElse(null);
         }
         catch (HibernateException e) {
-            e.printStackTrace();
+            log.error("Error Message : {}",e.getMessage(),e);
             return null;
         }
     }
