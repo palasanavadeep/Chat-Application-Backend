@@ -37,7 +37,6 @@ public class SessionManager {
                     ctx.writeAndFlush(frame.retainedDuplicate()); // Efficient broadcast
                 }
             }
-
             frame.release(); // release retained buffer
         } catch (Exception e) {
             e.printStackTrace();

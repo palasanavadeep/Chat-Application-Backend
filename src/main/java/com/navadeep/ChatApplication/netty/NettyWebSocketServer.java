@@ -8,14 +8,16 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 public class NettyWebSocketServer implements ApplicationContextAware {
 
-    private int port;
+    private final int port;
     private ApplicationContext applicationContext;
-
+    Logger log =  LoggerFactory.getLogger(NettyWebSocketServer.class);
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private Channel serverChannel;
@@ -52,10 +54,10 @@ public class NettyWebSocketServer implements ApplicationContextAware {
 
                 ChannelFuture future = bootstrap.bind(port).sync();
                 serverChannel = future.channel();
-                System.out.println("Netty WebSocket server started on port " + port);
+                log.info("Netty WebSocket server started on port {}", port);
                 serverChannel.closeFuture().sync();
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Unable to start Netty Server :: {}",e.getMessage(),e);
             } finally {
                 shutdown();
             }
@@ -63,7 +65,7 @@ public class NettyWebSocketServer implements ApplicationContextAware {
     }
 
     public void stop() {
-        System.out.println("Shutting down Netty WebSocket server...");
+        log.info("Shutting down Netty WebSocket server...");
         shutdown();
     }
 

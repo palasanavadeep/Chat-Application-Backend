@@ -7,6 +7,9 @@ import com.navadeep.ChatApplication.domain.User;
 import com.navadeep.ChatApplication.domain.UserLite;
 import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 
 public class UserServiceImpl implements UserService {
@@ -14,6 +17,7 @@ public class UserServiceImpl implements UserService {
     private UserDao userDao;
     private UserLiteDao userLiteDao;
     private AttachmentService attachmentService;
+    private final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     public UserServiceImpl(UserDao userDao, UserLiteDao userLiteDao,AttachmentService attachmentService) {
         this.userDao = userDao;
@@ -24,16 +28,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User save(User user) {
-        return null;
+        return userDao.save(user);
     }
 
     @Override
     public User update(User user, byte[] file, String fileName) {
         if(user.getId()==null){
+            log.warn("User id is null");
             throw new RuntimeException("User id is null, can't update user");
         }
 
         if(user.getPassword().length() < 6){
+            log.warn("Password length is weak");
             throw new RuntimeException("password length is less than 6");
         }
 
@@ -55,17 +61,17 @@ public class UserServiceImpl implements UserService {
 
         User user = userDao.findById(id);
         if(user == null){
+            log.warn("User : {} not found",id);
             throw new RuntimeException("user with id "+id+" not found");
         }
         userDao.delete(user);
-        System.out.println("user with id "+id+" deleted");
-
     }
 
     @Override
     public UserLite findById(Long id) {
         UserLite user = userLiteDao.findById(id);
         if(user == null){
+            log.warn("User :{} not found",id);
             throw new RuntimeException("User with ID :  "+id+" not found");
         }
         return user;
@@ -85,6 +91,7 @@ public class UserServiceImpl implements UserService {
     public User getUserProfileById(Long id) {
         User user = userDao.findById(id);
         if(user == null){
+            log.warn("User: {} not found",id);
             throw new RuntimeException("User with ID :  "+id+" not found");
         }
         return user;

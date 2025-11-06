@@ -17,66 +17,120 @@ public class MessageDaoImpl extends BaseDaoImpl<Message> implements MessageDao {
     }
 
 
-    @Override
-    public List<Message> findByConversationId(Long userId,Long conversationId) {
-        try (Session session = sessionFactory.openSession()) {
-
+//    @Override
+//    public List<Message> findByConversationId(Long userId,Long conversationId) {
+//        try (Session session = sessionFactory.openSession()) {
+//
+////            CriteriaBuilder cb = session.getCriteriaBuilder();
+////            CriteriaQuery<Message> cq = cb.createQuery(Message.class);
+////            Root<Message> messageRoot = cq.from(Message.class);
+////
+////            // Join with MessageReceipt
+////            Join<Message, MessageReceipt> receiptJoin = messageRoot.join("messageReceipts", JoinType.INNER);
+////
+////            cq.select(messageRoot)
+////                    .distinct(true)
+////                    .where(
+////                            cb.and(
+////                                    cb.equal(messageRoot.get("conversationId"), conversationId),
+////                                    cb.equal(receiptJoin.get("userId"), userId),
+////                                    cb.notEqual(receiptJoin.get("status").get("lookupCode"), "DELETED")
+////                            )
+////                    )
+////                    .orderBy(cb.asc(messageRoot.get("createdAt")));
+////
+////            return session.createQuery(cq).getResultList();
 //            CriteriaBuilder cb = session.getCriteriaBuilder();
 //            CriteriaQuery<Message> cq = cb.createQuery(Message.class);
-//            Root<Message> messageRoot = cq.from(Message.class);
+//            Root<Message> m = cq.from(Message.class);
 //
-//            // Join with MessageReceipt
-//            Join<Message, MessageReceipt> receiptJoin = messageRoot.join("messageReceipts", JoinType.INNER);
-//
-//            cq.select(messageRoot)
-//                    .distinct(true)
+//// Subquery to filter messages having valid receipts
+//            Subquery<Long> sub = cq.subquery(Long.class);
+//            Root<MessageReceipt> mr = sub.from(MessageReceipt.class);
+//            sub.select(mr.get("message").get("id"))
 //                    .where(
 //                            cb.and(
-//                                    cb.equal(messageRoot.get("conversationId"), conversationId),
-//                                    cb.equal(receiptJoin.get("userId"), userId),
-//                                    cb.notEqual(receiptJoin.get("status").get("lookupCode"), "DELETED")
+//                                    cb.equal(mr.get("userId"), userId),
+//                                    cb.equal(mr.get("message").get("conversationId"), conversationId),
+//                                    cb.notEqual(mr.get("status").get("lookupCode"), "DELETED")
 //                            )
-//                    )
-//                    .orderBy(cb.asc(messageRoot.get("createdAt")));
+//                    );
+//
+//            cq.select(m)
+//                    .where(m.get("id").in(sub))
+//                    .orderBy(cb.asc(m.get("createdAt")));
 //
 //            return session.createQuery(cq).getResultList();
-            CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaQuery<Message> cq = cb.createQuery(Message.class);
-
-// Define roots (similar to "from Message m join MessageReceipt mr on ...")
-            Root<Message> m = cq.from(Message.class);
-            Root<MessageReceipt> mr = cq.from(MessageReceipt.class);
-
-// Define join condition: mr.message.id = m.id
-            Predicate joinCondition = cb.equal(mr.get("message").get("id"), m.get("id"));
-
-// Define filters
-            Predicate conversationPredicate = cb.equal(m.get("conversationId"), conversationId);
-            Predicate userPredicate = cb.equal(mr.get("userId"), userId);
-            Predicate notDeletedPredicate = cb.notEqual(mr.get("status").get("lookupCode"), "DELETED");
-
-// Combine all predicates
-            cq.select(m)
-                    .distinct(true)
-                    .where(cb.and(joinCondition, conversationPredicate, userPredicate, notDeletedPredicate))
-                    .orderBy(cb.asc(m.get("createdAt")));
-
-            return session.createQuery(cq).getResultList();
-
-
-        } catch (HibernateException e) {
-            log.error("Error Message ; {}",e.getMessage(),e);
-            return Collections.emptyList();
-        }
-    }
+//
+//
+//
+//        } catch (HibernateException e) {
+//            log.error("Error Message ; {}",e.getMessage(),e);
+//            return Collections.emptyList();
+//        }
+//    }
 
 
 
     // future versions
+
+    @Override
+    public List<Message> findByConversationId(Long userId, Long conversationId) {
+        try (Session session = sessionFactory.openSession()) {
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+            CriteriaQuery<Message> cq = cb.createQuery(Message.class);
+
+            // Root for Message
+            Root<Message> messageRoot = cq.from(Message.class);
+
+            // Subquery to find valid message IDs
+            Subquery<Long> sub = cq.subquery(Long.class);
+            Root<MessageReceipt> mr = sub.from(MessageReceipt.class);
+
+            // Subquery selects message IDs that meet conditions
+            sub.select(mr.get("message").get("id"))
+                    .where(
+                            cb.and(
+                                    cb.equal(mr.get("userId"), userId),
+                                    cb.notEqual(mr.get("status").get("lookupCode"), "DELETED"),
+                                    cb.equal(mr.get("message").get("conversationId"), conversationId)
+                            )
+                    );
+
+            // Main query selects messages whose IDs are in that subquery
+            cq.select(messageRoot)
+                    .where(
+                            cb.in(messageRoot.get("id")).value(sub)
+                    )
+                    .orderBy(cb.asc(messageRoot.get("createdAt")));
+
+            return session.createQuery(cq).getResultList();
+//            String hql = """
+//            select m
+//            from Message m
+//            inner join MessageReceipt mr on mr.message.id = m.id
+//            where m.conversationId = :cid
+//              and mr.userId = :uid
+//              and mr.status.lookupCode != 'DELETED'
+//            order by m.createdAt
+//        """;
+//
+//            return session.createQuery(hql, Message.class)
+//                    .setParameter("cid", conversationId)
+//                    .setParameter("uid", userId)
+//                    .list();
+
+        } catch (HibernateException e) {
+            log.error("Error Message ; {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
     @Override
     public List<Message> findBySenderId(Long senderId) {
-        Session session = sessionFactory.getCurrentSession();
-        try {
+
+        try (Session session = sessionFactory.openSession()){
             CriteriaBuilder cb = session.getCriteriaBuilder();
             CriteriaQuery<Message> cq = cb.createQuery(Message.class);
             Root<Message> root = cq.from(Message.class);

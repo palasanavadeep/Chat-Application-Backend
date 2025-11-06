@@ -39,8 +39,6 @@ public class ConversationServiceImpl implements ConversationService {
             throw new IllegalArgumentException("type is null or empty");
         }
 
-        System.out.println(1);
-
         UserLite creator = userLiteDao.findById(userId);
 
         Conversation newConversation = new Conversation();
@@ -49,14 +47,8 @@ public class ConversationServiceImpl implements ConversationService {
         newConversation.setType(lookupService.findByLookupCode(type));
 
 
-
-        System.out.println("conversation created for creator: " + creator);
-
-
         // create participant for creator of the conversation
         ConversationParticipant creatorParticipant = generateConversationParticipant(userId,"ADMIN");
-
-        System.out.println("conversation participated created for creator: " + creatorParticipant);
 
         // add members into participants list
         List<ConversationParticipant> conversationParticipants = new ArrayList<>();
@@ -84,8 +76,6 @@ public class ConversationServiceImpl implements ConversationService {
 
         newConversation.setConversationParticipants(conversationParticipants);
 
-        System.out.println("new conversation : " + newConversation);
-
         // save the new conversation
         Conversation createdConversation = conversationDao.save(newConversation);
 
@@ -94,7 +84,6 @@ public class ConversationServiceImpl implements ConversationService {
         participants.add(userId);
         sessionManager.broadcast(wsResponse,participants);
 
-        System.out.println("Created conversation is : "+createdConversation);
 
         return createdConversation;
     }
@@ -162,16 +151,12 @@ public class ConversationServiceImpl implements ConversationService {
         if(conversationId == null || message == null){
             throw new IllegalArgumentException("conversationId and message is null");
         }
-        System.out.println("in updateLastMessage");
         Conversation conversation = conversationDao.findById(conversationId);
-        System.out.println("conversation in last message: " + conversation);
         if(conversation == null){
             throw new IllegalArgumentException("conversation is not found");
         }
         conversation.setLastMessage(message);
-        System.out.println("after set lastmessage conversation : " + conversation);
         conversationDao.update(conversation);
-        System.out.println("last message has been saved");
     }
 
     /**
@@ -183,21 +168,20 @@ public class ConversationServiceImpl implements ConversationService {
     public List<Conversation> getUserConversations(Long userId) {
         // Step 1: Fetch user conversations
         List<Conversation> conversations = conversationDao.findUserConversations(userId);
-//        System.out.println(conversations.get(0));
         if (conversations.isEmpty()) return conversations;
-
+        System.out.println(1);
         // Step 2: Collect last message IDs
         List<Long> lastMessageIds = conversations.stream()
                 .map(Conversation::getLastMessage)
                 .filter(Objects::nonNull)
                 .map(Message::getId)
                 .toList();
-
+        System.out.println(1);
         if (lastMessageIds.isEmpty()) {
             conversations.forEach(c -> c.setHasUnreadMessages(false));
             return conversations;
         }
-
+        System.out.println(1);
         // Step 3: Fetch message receipts in batch
         List<MessageReceipt> receiptResults = messageReceiptService
                 .findMessageReceiptsByUserIdAndMessageIds(userId, lastMessageIds);
@@ -212,7 +196,7 @@ public class ConversationServiceImpl implements ConversationService {
                         }
                 ));
 
-
+        System.out.println(1);
         // Step 4: Map computed values and participants
         for (Conversation conv : conversations) {
             // Compute unread flag
@@ -225,10 +209,7 @@ public class ConversationServiceImpl implements ConversationService {
                 conv.getConversationParticipants().removeIf(cp -> !cp.getUser().getId().equals(userId));
             }
         }
-
-        System.out.println("in getUserConversations service method");
-
-        System.out.println("\n\n parts"+conversations);
+        System.out.println(1);
 
         return conversations;
     }

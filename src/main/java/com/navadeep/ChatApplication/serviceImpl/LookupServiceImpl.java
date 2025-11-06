@@ -13,7 +13,7 @@ import java.util.List;
 
 public class LookupServiceImpl implements LookupService {
 
-    private LookupDao lookupDao;
+    private final LookupDao lookupDao;
 
     public LookupServiceImpl(LookupDao lookupDao) {
         this.lookupDao = lookupDao;

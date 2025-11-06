@@ -6,6 +6,9 @@ import com.navadeep.ChatApplication.domain.*;
 import com.navadeep.ChatApplication.netty.SessionManager;
 import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.*;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MessageServiceImpl implements MessageService {
+
+    private SessionFactory sessionFactory;
 
     private MessageDao messageDao;
     private MessageReceiptService messageReceiptService;
@@ -46,45 +51,58 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Message sendMessage(Long senderId, Long conversationId, String messageContent, byte[] attachment,String attachmentName) {
-        UserLite sender = userService.findById(senderId);
-        Message newMessage = new Message();
-        newMessage.setSender(sender);
-        newMessage.setConversationId(conversationId);
-        newMessage.setBody(messageContent);
-        newMessage.setEditedAt(null);
-        newMessage.setCreatedAt(System.currentTimeMillis());
 
-        if(attachment!=null && attachment.length>0 && attachmentName!=null){
-            Attachment messageAttachment = attachmentService.save(attachmentName,attachment);
-            newMessage.setAttachment(messageAttachment);
+        Transaction tx = null;
+        try(Session session=sessionFactory.openSession()){
+            tx = session.beginTransaction();
+
+            UserLite sender = userService.findById(senderId);
+            Message newMessage = new Message();
+            newMessage.setSender(sender);
+            newMessage.setConversationId(conversationId);
+            newMessage.setBody(messageContent);
+            newMessage.setEditedAt(null);
+            newMessage.setCreatedAt(System.currentTimeMillis());
+
+            if(attachment!=null && attachment.length>0 && attachmentName!=null){
+                Attachment messageAttachment = attachmentService.save(attachmentName,attachment);
+                newMessage.setAttachment(messageAttachment);
+            }
+
+            Message savedMessage = messageDao.save(newMessage);
+
+            conversationService.updateLastMessage(conversationId,savedMessage);
+
+
+            List<Long> participants = conversationParticipantService.findParticipantUserIdsByConversationId(conversationId);
+            // broadcast messages to all participants
+            WsResponse wsResponse = WsResponse.success("newMessage",savedMessage);
+            sessionManager.broadcast(wsResponse,participants);
+
+            // in future can be processed through queues
+            List<MessageReceipt> messageReceipts = new ArrayList<>();
+            Lookup sentLookupStatus = lookupService.findByLookupCode("SENT");
+
+            for (Long participantUserId : participants) {
+                MessageReceipt messageReceipt = new MessageReceipt();
+                messageReceipt.setMessage(savedMessage);
+                messageReceipt.setUserId(participantUserId);
+                messageReceipt.setStatus(sentLookupStatus);
+                messageReceipts.add(messageReceipt);
+            }
+
+            messageReceiptService.saveOrUpdateMessageReceipts(messageReceipts);
+
+            tx.commit();
+
+            return savedMessage;
+        }catch (Exception e){
+            if(tx!=null){
+                tx.rollback();
+            }
+            log.error(e.getMessage());
+            return null;
         }
-
-        Message savedMessage = messageDao.save(newMessage);
-
-        conversationService.updateLastMessage(conversationId,savedMessage);
-
-
-        List<Long> participants = conversationParticipantService.findParticipantUserIdsByConversationId(conversationId);
-        // broadcast messages to all participants
-        WsResponse wsResponse = WsResponse.success("newMessage",savedMessage);
-        sessionManager.broadcast(wsResponse,participants);
-
-        // in future can be processed through queues
-        List<MessageReceipt> messageReceipts = new ArrayList<>();
-        Lookup sentLookupStatus = lookupService.findByLookupCode("SENT");
-
-        for (Long participantUserId : participants) {
-            MessageReceipt messageReceipt = new MessageReceipt();
-            messageReceipt.setMessage(savedMessage);
-            messageReceipt.setUserId(participantUserId);
-            messageReceipt.setStatus(sentLookupStatus);
-            messageReceipts.add(messageReceipt);
-        }
-
-        messageReceiptService.saveOrUpdateMessageReceipts(messageReceipts);
-
-        return savedMessage;
-
     }
 
     @Override
@@ -105,12 +123,13 @@ public class MessageServiceImpl implements MessageService {
         List<Long> participants = conversationParticipantService
                     .findParticipantUserIdsByConversationId(updatedMessage.getConversationId())
                     .stream()
-                    .filter(uId -> !(userId.equals(uId)))
+//                    .filter(uId -> !(userId.equals(uId)))
                     .toList();
 
 
         // broadcast to participants (participants)
         WsResponse wsResponse = WsResponse.success("editedMessage",updatedMessage);
+//        participants.add(userId);
         sessionManager.broadcast(wsResponse,participants);
 
         return updatedMessage;
@@ -151,6 +170,7 @@ public class MessageServiceImpl implements MessageService {
         if(!conversationParticipant.getRole().getLookupCode().equals("ADMIN")){
             Message message = messageDao.findById(messageId);
             if(message != null && !message.getSender().getId().equals(userId)){
+                log.warn("user : {} don't have permission to delete this message",userId);
                 throw new RuntimeException("Only Admins and Senders can delete a message for everyone");
             }
         }
@@ -164,7 +184,7 @@ public class MessageServiceImpl implements MessageService {
         messageReceiptService.saveOrUpdateMessageReceipts(messageReceipts); // uses batch updates (of  size 50)
 
         // broadcast to all participants (messageReceipt.userId) as deleted message
-        List<Long> effectedUsers = messageReceipts.stream().map(MessageReceipt::getUserId).filter(uId -> !(userId.equals(uId))).toList();
+        List<Long> effectedUsers = messageReceipts.stream().map(MessageReceipt::getUserId).toList();
 
         WsResponse wsResponse = WsResponse.success("deletedMessage",messageReceipts.getFirst().getMessage());
         sessionManager.broadcast(wsResponse,effectedUsers);
@@ -180,7 +200,6 @@ public class MessageServiceImpl implements MessageService {
         List<Message> messages = messageDao.findByConversationId(userId,conversationId);
 
         log.info("getMessageByConversationId {}",messages);
-        System.out.println("getMessageByConversationId"+messages);
 
         return messages;
     }

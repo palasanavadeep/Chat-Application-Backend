@@ -25,7 +25,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 
     @Override
     public T findById(Long id) {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.getCurrentSession()) {
             return session.get(tClass, id);
         }
         catch (HibernateException e) {
@@ -36,7 +36,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
 
     @Override
     public List<T> findAll() {
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.getCurrentSession()) {
             return session.createQuery("from " + tClass.getName(), tClass).list();
         }
         catch (HibernateException e) {
@@ -48,7 +48,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
     @Override
     public T save(T entity) {
         Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.getCurrentSession()) {
             tx = session.beginTransaction();
             session.persist(entity);
             tx.commit();
@@ -63,7 +63,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
     @Override
     public T update(T entity) {
         Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.getCurrentSession()) {
             tx = session.beginTransaction();
             session.merge(entity);
             tx.commit();
@@ -78,7 +78,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
     @Override
     public void delete(T entity) {
         Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
+        try (Session session = sessionFactory.getCurrentSession()) {
             tx = session.beginTransaction();
             session.remove(entity);
             tx.commit();

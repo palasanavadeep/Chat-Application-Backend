@@ -15,6 +15,8 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.AttributeKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -25,27 +27,16 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     private final SessionManager sessionManager;
     private final ObjectMapper mapper;
-    private JwtUtil jwtUtil;
+    private final JwtUtil jwtUtil;
+    private final ChatEventHandler chatEventHandler;
 
-    // services
-    private AttachmentService attachmentService;
-    private ConversationService conversationService;
-    private ConversationParticipantService conversationParticipantService;
-    private MessageService messageService;
-    private MessageReceiptService messageReceiptService;
-    private UserService userService;
+    Logger log = LoggerFactory.getLogger(ChatWebSocketHandler.class);
 
     public ChatWebSocketHandler(ApplicationContext springContext) {
         this.sessionManager = (SessionManager) springContext.getBean("sessionManager");
         this.mapper = (ObjectMapper) springContext.getBean("objectMapper");
         this.jwtUtil = (JwtUtil) springContext.getBean("jwtUtil");
-
-        this.attachmentService = (AttachmentService) springContext.getBean("attachmentServiceImpl");
-        this.conversationService = (ConversationService) springContext.getBean("conversationServiceImpl");
-        this.conversationParticipantService = (ConversationParticipantService) springContext.getBean("conversationParticipantServiceImpl");
-        this.messageService = (MessageService) springContext.getBean("messageServiceImpl");
-        this.messageReceiptService = (MessageReceiptService) springContext.getBean("messageReceiptServiceImpl");
-        this.userService = (UserService) springContext.getBean("userServiceImpl");
+        this.chatEventHandler = (ChatEventHandler) springContext.getBean("chatEventHandler");
     }
 
     @Override
@@ -80,9 +71,6 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             return;
         }
 
-        System.out.println(userId);
-
-
         handshaker.handshake(ctx.channel(), req);
         ctx.channel().attr(USER_ID_KEY).set(userId);
         sessionManager.addSession(userId, ctx); // Add to active sessions
@@ -94,221 +82,69 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             MessageFrame msg = mapper.readValue(json, MessageFrame.class);
             Long userId = Long.parseLong(ctx.channel().attr(USER_ID_KEY).get());
 
-
             switch (msg.getAction()) {
                 case "sendMessage" -> { // in service
-                    System.out.println("hello");
-
-                    byte[] file = getFile(msg);
-                    String fileName = getFileName(msg);
-                    System.out.println("fileName ; "+fileName);
-
-                    Map<String, Object> data = msg.getData();
-
-                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-                    String messageContent = data.get("messageContent") != null ? data.get("messageContent").toString() : null;
-
-                    System.out.println("messageContent : "+messageContent);
-                    try{
-                        if(conversationId != null){
-                            messageService.sendMessage(userId,conversationId,messageContent,file,fileName);
-                        }
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
-                    }
-
-
-
+                    chatEventHandler.sendMessageHandler(userId, msg);
                 }
                 case "editMessage" -> {
-
-                    Long messageId = Long.parseLong(msg.getData().get("messageId").toString());
-                    String messageContent = msg.getData().get("messageContent").toString();
-
-                    messageService.editMessage(userId,messageId,messageContent);
+                    chatEventHandler.editMessageHandler(userId, msg);
                 }
                 case "deleteMessageForMe" -> {
-
-                    Long messageId = Long.parseLong(msg.getData().get("messageId").toString());
-
-                    messageService.deleteMessageForMe(userId,messageId);
+                    chatEventHandler.deleteMessageForMeHandler(userId, msg);
                 }
                 case "deleteMessageForEveryone" -> {
-
-                    Long messageId = Long.parseLong(msg.getData().get("messageId").toString());
-                    Long conversationId = Long.parseLong(msg.getData().get("conversationId").toString());
-
-                    messageService.deleteMessageForEveryone(userId,messageId,conversationId);
+                    chatEventHandler.deleteMessageForEveryoneHandler(userId, msg);
                 }
                 case "createNewConversation" -> {
-
-                    Map<String, Object> data = msg.getData();
-                    System.out.println("in createNewConversation");
-
-                    String type = data.get("type").toString();
-                    String name = (data.get("name") != null) ? data.get("name").toString() : null;
-                    String description = (data.get("description") != null) ? data.get("description").toString() : null;
-
-                    List<Long> participants = new ArrayList<>();
-                    if (data.get("participants") instanceof List<?> list) {
-                        list.forEach(p -> participants.add(Long.parseLong(p.toString())));
-                    }
-
-                    byte[] conversationImageFile = getFile(msg);
-                    String fileName = getFileName(msg);
-
-                    conversationService
-                            .createConversation(userId,type,name,description,participants,conversationImageFile,fileName);
-
-                    System.out.println("in createNewConversation end");
-
+                    chatEventHandler.createConversationHandler(userId, msg);
                 }
                 case "updateConversation" -> {
-
-                    Map<String, Object> data = msg.getData();
-                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-                    String name = (data.get("name") != null) ? data.get("name").toString() : null;
-                    String description = (data.get("description") != null) ? data.get("description").toString() : null;
-
-                    byte[] conversationImageFile = getFile(msg);
-                    String fileName = getFileName(msg);
-
-                    conversationService.updateConversation(userId,conversationId,name,description,conversationImageFile,fileName);
-
+                    chatEventHandler.updateConversationHandler(userId, msg);
                 }
                 case "addUserToConversation" -> {
-                    Map<String, Object> data = msg.getData();
-                    Long newUserId = data.get("newUserId") != null ? Long.parseLong(data.get("newUserId").toString()) : null;
-                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-
-                    conversationService.addParticipant(userId,newUserId,conversationId);
-
+                    chatEventHandler.addUserToConversationHandler(userId, msg);
                 }
                 case "removeUserFromConversation" -> {
-
-                    Map<String, Object> data = msg.getData();
-                    Long removedUserId = data.get("removedUserId") != null ? Long.parseLong(data.get("removedUserId").toString()) : null;
-                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-
-                    conversationService.removeParticipant(userId,removedUserId,conversationId);
+                    chatEventHandler.removeUserFromConversationHandler(userId, msg);
                 }
                 case "updateParticipantRole" -> {
-
-                    Map<String, Object> data = msg.getData();
-                    Long participantId = data.get("participantId") != null ? Long.parseLong(data.get("participantId").toString()) : null;
-                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-                    String role = (data.get("role") != null) ? data.get("role").toString() : null;
-
-                    conversationParticipantService.updateParticipantRole(userId,participantId,conversationId,role);
+                    chatEventHandler.updateParticipantRoleHandler(userId, msg);
                 }
-
                 case "getConversationParticipants" -> {
-
-                    Map<String, Object> data = msg.getData();
-
-                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-                    List<ConversationParticipant> participants = conversationService.getAllParticipants(conversationId);
-
-                    WsResponse wsResponse = WsResponse.success("getConversationParticipantsResponse", Map.of("participants", participants,"conversationId", conversationId));
-                    sessionManager.broadcast(wsResponse,List.of(userId));
-
+                    chatEventHandler.getConversationParticipantsHandler(userId, msg);
                 }
                 case "getUserConversations" -> {
-
-                    List<Conversation> conversations = conversationService.getUserConversations(userId);
-                    WsResponse wsResponse = WsResponse.success("getUserConversationsResponse", conversations);
-                    sessionManager.broadcast(wsResponse,List.of(userId));
-
+                    chatEventHandler.getUserConversationsHandler(userId, msg);
                 }
                 case "getConversation" -> {
-
-                    Map<String, Object> data = msg.getData();
-
-                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-
-                    Conversation conversation = conversationService.findById(conversationId);
-
-                    WsResponse wsResponse = WsResponse.success("getConversationResponse", conversation);
-                    sessionManager.broadcast(wsResponse,List.of(userId));
+                    chatEventHandler.getConversationHandler(userId, msg);
                 }
                 case "getProfile" -> {
-
-                    User user = userService.getUserProfileById(userId);
-                    WsResponse wsResponse = WsResponse.success("getProfileResponse", user);
-                    sessionManager.broadcast(wsResponse,List.of(userId));
+                    chatEventHandler.getProfileHandler(userId, msg);
                 }
                 case "getAllMessages" -> {
-                    try{
-                        Map<String, Object> data = msg.getData();
-                        Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-
-                        if(conversationId != null) {
-                            System.out.println("getAllMessages netty handler conversationId "+conversationId);
-                            List<Message> conversationMessages = messageService
-                                    .getMessageByConversationId(userId,conversationId);
-
-                            WsResponse wsResponse = WsResponse.success("getAllMessagesResponse",
-                                    Map.of("conversationId" , conversationId,"messages", conversationMessages));
-                            sessionManager.broadcast(wsResponse,List.of(userId));
-                        }
-                    }
-                    catch (Exception e){
-                        System.out.println("err :: "+e.getMessage());
-
-                    }
+                    chatEventHandler.getAllMessagesHandler(userId, msg);
                 }
                 case "markMessageAsRead" -> {
-                    Map<String, Object> data = msg.getData();
-                    Long messageId =  data.get("messageId") != null ? Long.parseLong(data.get("messageId").toString()) : null;
-
-                    messageReceiptService.markMessageAsRead(userId,messageId);
+                    chatEventHandler.markMessageAsReadHandler(userId, msg);
                 }
-
                 case "markConversationMessagesAsRead" -> {
-                    Map<String, Object> data = msg.getData();
-                    Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-
-                    messageReceiptService.markMessagesInConversationAsRead(userId,conversationId);
+                    chatEventHandler.markConversationMessagesAsReadHandler(userId, msg);
                 }
-
                 case "searchUser"->{
-                    Map<String, Object> data = msg.getData();
-                    String username = data.get("username") != null ? data.get("username").toString() : null;
-                    UserLite userResult= null;
-                    if(username != null){
-                        userResult = userService.findByUsername(username);
-                    }
-                    WsResponse wsResponse = WsResponse.success("searchUserResponse", List.of(userResult));
-                    sessionManager.broadcast(wsResponse,List.of(userId));
+                    chatEventHandler.searchUserHandler(userId, msg);
                 }
-
                 default -> {
-                    ctx.writeAndFlush(new TextWebSocketFrame("{\"error\": \"Invalid action\"}"));
+                    sessionManager.broadcast(
+                            WsResponse.error("ERROR", "Invalid Socket action"),
+                            List.of(userId)
+                    );
                 }
             }
-
-
         }
         // Handle BinaryWebSocketFrame for Large files
     }
 
-    private byte[] getFile(MessageFrame msg) {
-        if (msg.getFile() == null || msg.getFile().isBlank()) {
-            return null;
-        }
-        try {
-            return Base64.getDecoder().decode(msg.getFile());
-        } catch (IllegalArgumentException e) {
-            System.err.println("Invalid Base64 file data");
-            return null;
-        }
-    }
-    private String getFileName(MessageFrame msg) {
-        return (msg.getFileName() != null && !msg.getFileName().isBlank())
-                ? msg.getFileName()
-                : null;
-    }
 
 
     private String getWebSocketURL(FullHttpRequest req) {
@@ -346,6 +182,21 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+
+        log.error("Exception caught: {}",cause.getMessage());
+
+        WsResponse response = WsResponse.error("ERROR",cause.getMessage());
+
+        // Send the response back to the client
+        ctx.writeAndFlush(response).addListener(future -> {
+            if (future.isSuccess()) {
+                log.info("Error response sent successfully");
+            } else {
+                log.warn("Failed to send error response to the client");
+            }
+        });
+
         ctx.close();
     }
+
 }

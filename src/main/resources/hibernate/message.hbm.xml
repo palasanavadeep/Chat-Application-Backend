@@ -28,9 +28,11 @@
         <property name="body" column="body" type="string"/>
 
         <one-to-one name="attachment"
-                    class="com.navadeep.ChatApplication.domain.Attachment"
+                     class="com.navadeep.ChatApplication.domain.Attachment"
                     fetch="join"
                     lazy="false"/>
+<!--                     column="attachment_id"-->
+
 
 
         <property name="editedAt" column="edited_at" type="long"/>
