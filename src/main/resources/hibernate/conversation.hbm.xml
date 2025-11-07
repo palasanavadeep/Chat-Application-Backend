@@ -49,8 +49,9 @@
             <one-to-many class="com.navadeep.ChatApplication.domain.ConversationParticipant"/>
         </bag>
 
-        <one-to-one name="lastMessage"
+        <many-to-one name="lastMessage"
                     class="com.navadeep.ChatApplication.domain.Message"
+                     column="last_message_id"
                     fetch="join"
                     lazy="false"/>
 

@@ -33,6 +33,7 @@ public class ChatEventHandler {
 
     public void sendMessageHandler(Long userId, MessageFrame msg) {
         try{
+            System.out.println("sendMessageHandler called");
             byte[] file = getFile(msg);
             String fileName = getFileName(msg);
             Map<String, Object> data = msg.getData();
@@ -43,9 +44,11 @@ public class ChatEventHandler {
             if(conversationId != null){
                 messageService.sendMessage(userId,conversationId,messageContent,file,fileName);
             }
+            System.out.println("sendMessageHandler completed");
         }
         catch (Exception e){
             log.error(e.getMessage());
+            System.out.println("sendMesageHandler error : "+e.getMessage());
             sessionManager.broadcast(
                     WsResponse.error("ERROR","Can't Send Message : "+e.getMessage()),
                     List.of(userId)

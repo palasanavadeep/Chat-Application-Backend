@@ -74,6 +74,10 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         handshaker.handshake(ctx.channel(), req);
         ctx.channel().attr(USER_ID_KEY).set(userId);
         sessionManager.addSession(userId, ctx); // Add to active sessions
+
+//        // Remove HTTP handlers from pipeline after handshake
+//        ctx.pipeline().remove(HttpServerCodec.class);
+//        ctx.pipeline().remove(HttpObjectAggregator.class);
     }
 
     private void handleFrame(ChannelHandlerContext ctx, WebSocketFrame frame) throws JsonProcessingException {
@@ -184,6 +188,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 
         log.error("Exception caught: {}",cause.getMessage());
+        System.out.println("Exception caught:"+cause.getMessage());
 
         WsResponse response = WsResponse.error("ERROR",cause.getMessage());
 

@@ -38,7 +38,8 @@ public class MessageServiceImpl implements MessageService {
                               UserService userService,
                               AttachmentService attachmentService,
                               LookupService lookupService,
-                              SessionManager sessionManager) {
+                              SessionManager sessionManager,
+                              SessionFactory sessionFactory) {
         this.messageDao = messageDao;
         this.messageReceiptService = messageReceiptService;
         this.conversationService = conversationService;
@@ -47,11 +48,12 @@ public class MessageServiceImpl implements MessageService {
         this.attachmentService = attachmentService;
         this.conversationParticipantService = conversationParticipantService;
         this.sessionManager = sessionManager;
+        this.sessionFactory = sessionFactory;
     }
 
     @Override
     public Message sendMessage(Long senderId, Long conversationId, String messageContent, byte[] attachment,String attachmentName) {
-
+        System.out.println("sendMessage called");
         Transaction tx = null;
         try(Session session=sessionFactory.openSession()){
             tx = session.beginTransaction();
@@ -100,7 +102,7 @@ public class MessageServiceImpl implements MessageService {
             if(tx!=null){
                 tx.rollback();
             }
-            log.error(e.getMessage());
+            System.out.println(e.getMessage());
             return null;
         }
     }

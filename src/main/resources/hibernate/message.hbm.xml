@@ -27,11 +27,12 @@
 
         <property name="body" column="body" type="string"/>
 
-        <one-to-one name="attachment"
+        <many-to-one name="attachment"
                      class="com.navadeep.ChatApplication.domain.Attachment"
                     fetch="join"
+                     column="message_attachment_id"
                     lazy="false"/>
-<!--                     column="attachment_id"-->
+
 
 
 

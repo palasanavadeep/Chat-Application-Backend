@@ -153,6 +153,7 @@
         <constructor-arg name="attachmentService" ref="attachmentServiceImpl"/>
         <constructor-arg name="lookupService" ref="lookupServiceImpl"/>
         <constructor-arg name="sessionManager" ref="sessionManager"/>
+        <constructor-arg name="sessionFactory" ref="sessionFactory"/>
     </bean>
 
 
