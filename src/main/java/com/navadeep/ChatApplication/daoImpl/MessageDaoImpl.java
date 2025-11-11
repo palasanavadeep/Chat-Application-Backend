@@ -106,20 +106,6 @@ public class MessageDaoImpl extends BaseDaoImpl<Message> implements MessageDao {
                     .orderBy(cb.asc(messageRoot.get("createdAt")));
 
             return session.createQuery(cq).getResultList();
-//            String hql = """
-//            select m
-//            from Message m
-//            inner join MessageReceipt mr on mr.message.id = m.id
-//            where m.conversationId = :cid
-//              and mr.userId = :uid
-//              and mr.status.lookupCode != 'DELETED'
-//            order by m.createdAt
-//        """;
-//
-//            return session.createQuery(hql, Message.class)
-//                    .setParameter("cid", conversationId)
-//                    .setParameter("uid", userId)
-//                    .list();
 
         } catch (HibernateException e) {
             log.error("Error Message ; {}", e.getMessage(), e);

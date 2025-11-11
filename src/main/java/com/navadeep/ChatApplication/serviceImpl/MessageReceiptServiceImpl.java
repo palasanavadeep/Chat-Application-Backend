@@ -6,13 +6,14 @@ import com.navadeep.ChatApplication.domain.Lookup;
 import com.navadeep.ChatApplication.domain.MessageReceipt;
 import com.navadeep.ChatApplication.service.LookupService;
 import com.navadeep.ChatApplication.service.MessageReceiptService;
+import com.navadeep.ChatApplication.utils.Constants;
 
 import java.util.List;
 import java.util.Objects;
 
 public class MessageReceiptServiceImpl implements MessageReceiptService {
-    private MessageReceiptDao messageReceiptDao;
-    private LookupService lookupService;
+    private final MessageReceiptDao messageReceiptDao;
+    private final LookupService lookupService;
 
     public MessageReceiptServiceImpl(MessageReceiptDao messageReceiptDao, LookupService lookupService) {
         this.messageReceiptDao = messageReceiptDao;
@@ -55,7 +56,7 @@ public class MessageReceiptServiceImpl implements MessageReceiptService {
             throw new RuntimeException("conversationId is null");
         }
 
-        Lookup readStatus = lookupService.findByLookupCode("READ");
+        Lookup readStatus = lookupService.findByLookupCode(Constants.MESSAGE_STATUS_READ);
         return messageReceiptDao.markConversationAsRead(userId, conversationId, readStatus);
     }
 
@@ -64,7 +65,7 @@ public class MessageReceiptServiceImpl implements MessageReceiptService {
         if (messageId == null) {
             throw new RuntimeException("messageId is null");
         }
-        Lookup readStatus = lookupService.findByLookupCode("READ");
+        Lookup readStatus = lookupService.findByLookupCode(Constants.MESSAGE_STATUS_READ);
         return messageReceiptDao.markMessageAsRead(userId, messageId, readStatus);
     }
 

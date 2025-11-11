@@ -2,9 +2,9 @@ package com.navadeep.ChatApplication.netty;
 
 import com.navadeep.ChatApplication.domain.*;
 import com.navadeep.ChatApplication.service.*;
+import com.navadeep.ChatApplication.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -35,8 +35,6 @@ public class ChatEventHandler {
 
     public void sendMessageHandler(Long userId, MessageFrame msg) {
         try{
-            System.out.println("sendMessageHandler called");
-            System.out.println("Started processing sendMessageHandler" + LocalTime.now());
             byte[] file = getFile(msg);
             String fileName = getFileName(msg);
             Map<String, Object> data = msg.getData();
@@ -47,13 +45,11 @@ public class ChatEventHandler {
             if(conversationId != null){
                 messageService.sendMessage(userId,conversationId,messageContent,file,fileName);
             }
-            System.out.println("sendMessageHandler completed");
         }
         catch (Exception e){
             log.error(e.getMessage());
-            System.out.println("sendMesageHandler error : "+e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't Send Message : "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't Send Message : "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -69,7 +65,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't Edit Message : "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't Edit Message : "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -83,7 +79,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't Delete Message : "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't Delete Message : "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -98,7 +94,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't Delete Message : "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't Delete Message : "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -127,7 +123,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't Delete Message : "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't Delete Message : "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -149,7 +145,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't update conversation : "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't update conversation : "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -163,13 +159,13 @@ public class ChatEventHandler {
             Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
 
             conversationService.addParticipant(userId,newUserId,conversationId);
-            System.out.println("addUserToConversationHandler completed");
+
         }
         catch (Exception e){
             System.out.println("addUserToConversationHandler error : "+e.getMessage());
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't add user to conversation"+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't add user to conversation"+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -186,7 +182,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't remove user from conversation"+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't remove user from conversation"+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -203,7 +199,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't update role of participant"+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't update role of participant"+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -226,7 +222,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't get participants "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't get participants "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -241,7 +237,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error("eroor {}",e.getMessage(),e);
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't get chats "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't get chats "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -261,7 +257,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't get Conversation "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't get Conversation "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -276,7 +272,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't get Profile "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't get Profile "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -299,7 +295,7 @@ public class ChatEventHandler {
         catch (Exception e){
            log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't get messages of chat "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't get messages of chat "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -315,7 +311,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't update message as read "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't update message as read "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -331,7 +327,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't update message/s as read "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't update message/s as read "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -355,7 +351,7 @@ public class ChatEventHandler {
         }catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't update profile "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't update profile "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -376,7 +372,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't leave conversation "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't leave conversation "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -399,7 +395,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error("ERROR","Can't get user/s "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't get user/s "+e.getMessage()),
                     List.of(userId)
             );
         }
@@ -412,7 +408,6 @@ public class ChatEventHandler {
         try {
             return Base64.getDecoder().decode(msg.getFile());
         } catch (IllegalArgumentException e) {
-            System.err.println("Invalid Base64 file data");
             return null;
         }
     }

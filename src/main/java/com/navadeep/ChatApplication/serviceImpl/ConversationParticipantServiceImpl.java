@@ -7,6 +7,7 @@ import com.navadeep.ChatApplication.netty.SessionManager;
 import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.ConversationParticipantService;
 import com.navadeep.ChatApplication.service.LookupService;
+import com.navadeep.ChatApplication.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
@@ -74,7 +75,7 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
 
         ConversationParticipant isAdminParticipant = conversationParticipantDao.getParticipantByConversationIdAndUserId(conversationId, userId);
 
-        if(isAdminParticipant == null || !isAdminParticipant.getRole().getLookupCode().equals("ADMIN")){
+        if(isAdminParticipant == null || !isAdminParticipant.getRole().getLookupCode().equals(Constants.ROLE_ADMIN)){
             log.warn("userId :{} or participantId : {} is NOT ADMIN",userId,participantId);
             throw new IllegalArgumentException("You are not allowed to update the role for a participant.");
         }
@@ -85,7 +86,7 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
 
         // to notify all the existing participants about updated role
         List<Long> participantUserIds = this.findParticipantUserIdsByConversationId(conversationId);
-        WsResponse removedParticipantResponse = WsResponse.success("updateParticipant",
+        WsResponse removedParticipantResponse = WsResponse.success(Constants.WS_ACTION_UPDATE_PARTICIPANT,
                 Map.of("conversationId",conversationId,
                         "participant",updatedParticipant));
         sessionManager.broadcast(removedParticipantResponse,participantUserIds);

@@ -222,6 +222,7 @@
 package com.navadeep.ChatApplication.netty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.navadeep.ChatApplication.utils.Constants;
 import com.navadeep.ChatApplication.utils.JwtUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -268,7 +269,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     private void handleHandshake(ChannelHandlerContext ctx, FullHttpRequest req) {
-        if (!req.uri().startsWith("/ws")) {
+        if (!req.uri().startsWith(Constants.WS_SERVER_ENDPOINT)) {
             ctx.close();
             return;
         }
@@ -301,7 +302,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         sessionManager.addSession(userId, ctx);
     }
 
-    private void handleFrame(ChannelHandlerContext ctx, WebSocketFrame frame) throws Exception {
+    private void handleFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
         // Handle Text Frames (can be fragmented)
         if (frame instanceof TextWebSocketFrame) {
             frameBuffer.append(((TextWebSocketFrame) frame).text());
@@ -325,8 +326,6 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             ctx.close();
         } else if (frame instanceof PingWebSocketFrame) {
             ctx.writeAndFlush(new PongWebSocketFrame(frame.content().retain()));
-        } else if (frame instanceof PongWebSocketFrame) {
-            // ignore
         } else {
             throw new UnsupportedOperationException("Unsupported frame type: " + frame.getClass().getName());
         }
@@ -334,32 +333,34 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     private void processCompleteMessage(ChannelHandlerContext ctx, String json) {
         try {
-            System.out.println(LocalDateTime.now());
+//            System.out.println(LocalDateTime.now());
             MessageFrame msg = mapper.readValue(json, MessageFrame.class);
             Long userId = Long.parseLong(ctx.channel().attr(USER_ID_KEY).get());
 
             switch (msg.getAction()) {
-                case "sendMessage" -> chatEventHandler.sendMessageHandler(userId, msg);
-                case "editMessage" -> chatEventHandler.editMessageHandler(userId, msg);
-                case "deleteMessageForMe" -> chatEventHandler.deleteMessageForMeHandler(userId, msg);
-                case "deleteMessageForEveryone" -> chatEventHandler.deleteMessageForEveryoneHandler(userId, msg);
-                case "createNewConversation" -> chatEventHandler.createConversationHandler(userId, msg);
-                case "updateConversation" -> chatEventHandler.updateConversationHandler(userId, msg);
-                case "addUserToConversation" -> chatEventHandler.addUserToConversationHandler(userId, msg);
-                case "removeUserFromConversation" -> chatEventHandler.removeUserFromConversationHandler(userId, msg);
-                case "updateParticipantRole" -> chatEventHandler.updateParticipantRoleHandler(userId, msg);
-                case "getConversationParticipants" -> chatEventHandler.getConversationParticipantsHandler(userId, msg);
-                case "getUserConversations" -> chatEventHandler.getUserConversationsHandler(userId, msg);
-                case "getConversation" -> chatEventHandler.getConversationHandler(userId, msg);
-                case "getProfile" -> chatEventHandler.getProfileHandler(userId, msg);
-                case "getAllMessages" -> chatEventHandler.getAllMessagesHandler(userId, msg);
-                case "markMessageAsRead" -> chatEventHandler.markMessageAsReadHandler(userId, msg);
-                case "markConversationMessagesAsRead" -> chatEventHandler.markConversationMessagesAsReadHandler(userId, msg);
-                case "searchUser" -> chatEventHandler.searchUserHandler(userId, msg);
-                case "updateProfile" -> chatEventHandler.updateProfileHandler(userId, msg);
-                case "leaveConversation" -> chatEventHandler.leaveConversationHandler(userId, msg);
+                case Constants.WS_ACTION_SEND_MESSAGE -> chatEventHandler.sendMessageHandler(userId, msg);
+                case Constants.WS_ACTION_EDIT_MESSAGE -> chatEventHandler.editMessageHandler(userId, msg);
+                case Constants.WS_ACTION_DELETE_MESSAGE_FOR_ME -> chatEventHandler.deleteMessageForMeHandler(userId, msg);
+                case Constants.WS_ACTION_DELETE_MESSAGE_FOR_EVERYONE -> chatEventHandler.deleteMessageForEveryoneHandler(userId, msg);
+                case Constants.WS_ACTION_CREATE_NEW_CONVERSATION -> chatEventHandler.createConversationHandler(userId, msg);
+                case Constants.WS_ACTION_UPDATE_CONVERSATION -> chatEventHandler.updateConversationHandler(userId, msg);
+                case Constants.WS_ACTION_ADD_USER_TO_CONVERSATION -> chatEventHandler.addUserToConversationHandler(userId, msg);
+                case Constants.WS_ACTION_REMOVE_USER_FROM_CONVERSATION -> chatEventHandler.removeUserFromConversationHandler(userId, msg);
+                case Constants.WS_ACTION_UPDATE_PARTICIPANT_ROLE -> chatEventHandler.updateParticipantRoleHandler(userId, msg);
+                case Constants.WS_ACTION_GET_CONVERSATION_PARTICIPANTS -> chatEventHandler.getConversationParticipantsHandler(userId, msg);
+                case Constants.WS_ACTION_GET_USER_CONVERSATIONS -> chatEventHandler.getUserConversationsHandler(userId, msg);
+                case Constants.WS_ACTION_GET_CONVERSATION -> chatEventHandler.getConversationHandler(userId, msg);
+                case Constants.WS_ACTION_GET_PROFILE -> chatEventHandler.getProfileHandler(userId, msg);
+                case Constants.WS_ACTION_GET_ALL_MESSAGES -> chatEventHandler.getAllMessagesHandler(userId, msg);
+                case Constants.WS_ACTION_MARK_MESSAGE_AS_READ -> chatEventHandler.markMessageAsReadHandler(userId, msg);
+                case Constants.WS_ACTION_MARK_CONVERSATION_MESSAGES_AS_READ -> chatEventHandler.markConversationMessagesAsReadHandler(userId, msg);
+                case Constants.WS_ACTION_SEARCH_USER  -> chatEventHandler.searchUserHandler(userId, msg);
+                case Constants.WS_ACTION_UPDATE_PROFILE -> chatEventHandler.updateProfileHandler(userId, msg);
+                case Constants.WS_ACTION_LEAVE_CONVERSATION -> chatEventHandler.leaveConversationHandler(userId, msg);
                 default -> sessionManager.broadcast(
-                        WsResponse.error("ERROR", "Invalid Socket action"),
+                        WsResponse.error(
+                                Constants.STATUS_ERROR,
+                                "Invalid Socket action"),
                         List.of(userId)
                 );
             }
@@ -371,7 +372,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     private String getWebSocketURL(FullHttpRequest req) {
-        return "ws://" + req.headers().get("Host") + "/ws";
+        return "ws://" + req.headers().get("Host") + Constants.WS_SERVER_ENDPOINT;
     }
 
     private void sendHttpResponse(ChannelHandlerContext ctx,
@@ -401,7 +402,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.error("Exception caught: {}", cause.getMessage(), cause);
-        WsResponse response = WsResponse.error("ERROR", cause.getMessage());
+        WsResponse response = WsResponse.error(Constants.STATUS_ERROR, cause.getMessage());
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 }

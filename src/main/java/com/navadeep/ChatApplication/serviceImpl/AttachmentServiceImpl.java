@@ -5,6 +5,7 @@ import com.navadeep.ChatApplication.dao.AttachmentDao;
 import com.navadeep.ChatApplication.domain.Attachment;
 import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.LookupService;
+import com.navadeep.ChatApplication.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,22 +83,22 @@ public class AttachmentServiceImpl implements AttachmentService {
     public static String getFileType(String fileName) {
         // Extract file extension
         if(fileName==null || fileName.isEmpty()){
-            return "OTHER";
+            return Constants.ATTACHMENT_TYPE_FILE;
         }
 
         String fileExtension = getFileExtension(fileName).toLowerCase();
 
         // Define file type categories
         if (fileExtension.matches("jpg|jpeg|png|gif|bmp|webp")) {
-            return "IMAGE";
+            return Constants.ATTACHMENT_TYPE_IMAGE;
         } else if (fileExtension.equals("pdf")) {
-            return "PDF";
+            return Constants.ATTACHMENT_TYPE_FILE;
         } else if (fileExtension.matches("mp4|mkv|avi|mov|flv|wmv|webm")) {
-            return "VIDEO";
+            return Constants.ATTACHMENT_TYPE_FILE;
         } else if (fileExtension.matches("mp3|wav|ogg|flac|aac|m4a")) {
-            return "AUDIO";
+            return Constants.ATTACHMENT_TYPE_FILE;
         } else {
-            return "OTHER";  // For unsupported file types
+            return Constants.ATTACHMENT_TYPE_FILE;  // For unsupported file types
         }
     }
 
