@@ -12,6 +12,8 @@ import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +82,8 @@ public class MessageServiceImpl implements MessageService {
             // broadcast messages to all participants
             WsResponse wsResponse = WsResponse.success("newMessage",savedMessage);
             sessionManager.broadcast(wsResponse,participants);
+
+            System.out.println("ended processing sendMessageHandler" + LocalTime.now());
 
             // in future can be processed through queues
             List<MessageReceipt> messageReceipts = new ArrayList<>();

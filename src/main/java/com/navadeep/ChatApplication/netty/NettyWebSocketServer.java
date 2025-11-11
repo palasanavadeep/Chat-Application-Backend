@@ -8,6 +8,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocket08FrameDecoder;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,13 @@ public class NettyWebSocketServer implements ApplicationContextAware {
                                 ChannelPipeline pipeline = ch.pipeline();
                                 pipeline.addLast(new HttpServerCodec());
                                 pipeline.addLast(new HttpObjectAggregator(5242880));
-//                                pipeline.addLast(new WebSocketServerProtocolHandler("/ws", null, true, 10 * 1024 * 1024));
+                                pipeline.addLast(new WebSocket08FrameDecoder(
+                                        true, // allow extensions
+                                        false, // not masking client frames
+                                        20 * 1024 * 1024 // max frame length 20 MB
+                                ));
+//                                pipeline.addLast(new JwtWsHandshakeHandler(applicationContext));
+//                                pipeline.addLast(new WebSocketServerProtocolHandler("/ws", null, true, 5 * 1024 * 1024));
                                 pipeline.addLast(new ChatWebSocketHandler(applicationContext));
                             }
                         })

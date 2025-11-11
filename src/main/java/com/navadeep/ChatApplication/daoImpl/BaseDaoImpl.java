@@ -30,7 +30,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
         }
         catch (HibernateException e) {
             log.error("Error in findById({}) : {}",id,e.getMessage());
-            return null;
+            throw e;
         }
     }
 
@@ -41,7 +41,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
         }
         catch (HibernateException e) {
             log.error("Error in findAll() {}",e.getMessage());
-            return null;
+            throw e;
         }
     }
 

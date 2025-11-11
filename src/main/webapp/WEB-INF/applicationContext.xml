@@ -130,6 +130,7 @@
     <bean id="conversationParticipantServiceImpl" class="com.navadeep.ChatApplication.serviceImpl.ConversationParticipantServiceImpl">
         <constructor-arg name="conversationParticipantDao" ref="conversationParticipantDaoImpl"/>
         <constructor-arg name="lookupService" ref="lookupServiceImpl"/>
+        <constructor-arg name="sessionManager" ref="sessionManager"/>
     </bean>
     <bean id="messageReceiptServiceImpl" class="com.navadeep.ChatApplication.serviceImpl.MessageReceiptServiceImpl">
         <constructor-arg name="messageReceiptDao" ref="messageReceiptDaoImpl"/>

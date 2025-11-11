@@ -8,7 +8,7 @@ import java.util.List;
 public interface UserService {
     User save(User user); //unused
 
-    User update(User user,byte[] file,String fileName); // todo
+    User update(Long userId,String username,String displayName,String email,byte[] file,String fileName); // todo
     void delete(Long id);
     UserLite findById(Long id);
     List<UserLite> findAll();

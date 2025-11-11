@@ -4,6 +4,8 @@ import com.navadeep.ChatApplication.domain.*;
 import com.navadeep.ChatApplication.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -14,7 +16,7 @@ public class ChatEventHandler {
     private static final Logger log = LoggerFactory.getLogger(ChatEventHandler.class);
 
     private final SessionManager sessionManager;
-    private AttachmentService attachmentService;
+    private final AttachmentService attachmentService;
     private final ConversationService conversationService;
     private final ConversationParticipantService conversationParticipantService;
     private final MessageService messageService;
@@ -34,6 +36,7 @@ public class ChatEventHandler {
     public void sendMessageHandler(Long userId, MessageFrame msg) {
         try{
             System.out.println("sendMessageHandler called");
+            System.out.println("Started processing sendMessageHandler" + LocalTime.now());
             byte[] file = getFile(msg);
             String fileName = getFileName(msg);
             Map<String, Object> data = msg.getData();
@@ -154,14 +157,16 @@ public class ChatEventHandler {
 
     public void addUserToConversationHandler(Long userId,MessageFrame msg) {
         try{
+            System.out.println("addUserToConversationHandler called");
             Map<String, Object> data = msg.getData();
             Long newUserId = data.get("newUserId") != null ? Long.parseLong(data.get("newUserId").toString()) : null;
             Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
 
             conversationService.addParticipant(userId,newUserId,conversationId);
-
+            System.out.println("addUserToConversationHandler completed");
         }
         catch (Exception e){
+            System.out.println("addUserToConversationHandler error : "+e.getMessage());
             log.error(e.getMessage());
             sessionManager.broadcast(
                     WsResponse.error("ERROR","Can't add user to conversation"+e.getMessage()),
@@ -173,10 +178,10 @@ public class ChatEventHandler {
     public void removeUserFromConversationHandler(Long userId,MessageFrame msg) {
         try{
             Map<String, Object> data = msg.getData();
-            Long removedUserId = data.get("removedUserId") != null ? Long.parseLong(data.get("removedUserId").toString()) : null;
-            Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
+            Long participantId = data.get("participantId") != null ? Long.parseLong(data.get("participantId").toString()) : null;
 
-            conversationService.removeParticipant(userId,removedUserId,conversationId);
+            conversationService.removeParticipant(userId,participantId);
+
         }
         catch (Exception e){
             log.error(e.getMessage());
@@ -191,10 +196,9 @@ public class ChatEventHandler {
         try{
             Map<String, Object> data = msg.getData();
             Long participantId = data.get("participantId") != null ? Long.parseLong(data.get("participantId").toString()) : null;
-            Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
             String role = (data.get("role") != null) ? data.get("role").toString() : null;
 
-            conversationParticipantService.updateParticipantRole(userId,participantId,conversationId,role);
+            conversationParticipantService.updateParticipantRole(userId,participantId,role);
         }
         catch (Exception e){
             log.error(e.getMessage());
@@ -333,6 +337,51 @@ public class ChatEventHandler {
         }
     }
 
+    public void updateProfileHandler(Long userId, MessageFrame msg) {
+        try{
+            Map<String, Object> data = msg.getData();
+            String newUsername = data.get("username") != null ? data.get("username").toString() : null;
+            String newDisplayName = data.get("displayName") != null ? data.get("displayName").toString() : null;
+            String newEmail = data.get("email") != null ? data.get("email").toString() : null;
+
+            byte[] profileImageFile = getFile(msg);
+            String fileName = getFileName(msg);
+
+            User updatedUser = userService.update(userId,newUsername,newDisplayName,newEmail,profileImageFile,fileName);
+
+            WsResponse wsResponse = WsResponse.success("updateProfileResponse", updatedUser);
+            sessionManager.broadcast(wsResponse,List.of(userId));
+
+        }catch (Exception e){
+            log.error(e.getMessage());
+            sessionManager.broadcast(
+                    WsResponse.error("ERROR","Can't update profile "+e.getMessage()),
+                    List.of(userId)
+            );
+        }
+    }
+
+    public void leaveConversationHandler(Long userId, MessageFrame msg) {
+        try{
+            Map<String, Object> data = msg.getData();
+            Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
+
+            if(conversationId == null) {
+                throw new IllegalArgumentException("Conversation ID is required to leave a conversation.");
+            }
+
+            conversationService.leaveConversation(userId,conversationId);
+
+        }
+        catch (Exception e){
+            log.error(e.getMessage());
+            sessionManager.broadcast(
+                    WsResponse.error("ERROR","Can't leave conversation "+e.getMessage()),
+                    List.of(userId)
+            );
+        }
+    }
+
     public void searchUserHandler(Long userId,MessageFrame msg) {
         try{
             Map<String, Object> data = msg.getData();
@@ -340,6 +389,9 @@ public class ChatEventHandler {
             UserLite userResult= null;
             if(username != null){
                 userResult = userService.findByUsername(username);
+                if(userResult == null){
+                    throw new RuntimeException("User with username : "+username+" not found");
+                }
                 WsResponse wsResponse = WsResponse.success("searchUserResponse", List.of(userResult));
                 sessionManager.broadcast(wsResponse,List.of(userId));
             }
@@ -352,7 +404,6 @@ public class ChatEventHandler {
             );
         }
     }
-
 
     private byte[] getFile(MessageFrame msg) {
         if (msg.getFile() == null || msg.getFile().isBlank()) {
@@ -371,5 +422,7 @@ public class ChatEventHandler {
                 ? msg.getFileName()
                 : null;
     }
+
+
 
 }

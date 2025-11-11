@@ -32,15 +32,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User update(User user, byte[] file, String fileName) {
-        if(user.getId()==null){
-            log.warn("User id is null");
-            throw new RuntimeException("User id is null, can't update user");
-        }
+    public User update(Long userId,String username,String displayName,String email, byte[] file, String fileName) {
 
-        if(user.getPassword().length() < 6){
-            log.warn("Password length is weak");
-            throw new RuntimeException("password length is less than 6");
+        User user = userDao.findById(userId);
+
+        if(username != null){
+            UserLite existingUser = userLiteDao.findByUsername(username);
+            if(existingUser != null && !existingUser.getId().equals(userId)){
+                throw new RuntimeException("username "+username+" is already taken");
+            }
+            user.setUsername(username);
+        }
+        if(displayName != null){
+            user.setDisplayName(displayName);
+        }
+        if(email != null){
+            user.setEmail(email);
         }
 
         if(file != null && fileName != null){

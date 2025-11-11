@@ -9,8 +9,8 @@ import java.util.*;
 
 public class CorsInterceptor extends AbstractPhaseInterceptor<Message> {
 
-    private String allowOrigin = "http://localhost:3000";
-    private boolean allowCredentials = true;
+    private String allowOrigin = "*";
+    private boolean allowCredentials = false;
     private String allowedMethods = "GET,POST,PUT,DELETE,OPTIONS";
     private String allowedHeaders = "Origin,Content-Type,Accept,Authorization,Content-Disposition,X-Requested-With";
     private String maxAge = "3600";
@@ -41,6 +41,8 @@ public class CorsInterceptor extends AbstractPhaseInterceptor<Message> {
         headers.put("Access-Control-Max-Age",       Collections.singletonList(maxAge));
         if (allowCredentials) {
             headers.put("Access-Control-Allow-Credentials", Collections.singletonList("true"));
+        }else{
+            headers.put("Access-Control-Allow-Credentials", Collections.singletonList("false"));
         }
 
         if ("OPTIONS".equalsIgnoreCase((String) message.get(Message.HTTP_REQUEST_METHOD))) {

@@ -14,7 +14,7 @@ public interface ConversationService extends BaseService<Conversation>{
     void updateLastMessage(Long conversationId,Message message);
     List<Conversation> getUserConversations(Long userid);
     ConversationParticipant addParticipant(Long userId,Long newUserId,Long conversationId);
-    void removeParticipant(Long userId,Long removedUserId,Long conversationId);
+    void removeParticipant(Long userId,Long participantId);
     List<ConversationParticipant> getAllParticipants(Long conversationId);
     void leaveConversation(Long userId,Long conversationId);
 

@@ -3,22 +3,28 @@ package com.navadeep.ChatApplication.serviceImpl;
 
 import com.navadeep.ChatApplication.dao.ConversationParticipantDao;
 import com.navadeep.ChatApplication.domain.ConversationParticipant;
+import com.navadeep.ChatApplication.netty.SessionManager;
+import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.ConversationParticipantService;
 import com.navadeep.ChatApplication.service.LookupService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
+import java.util.Map;
 
 public class ConversationParticipantServiceImpl implements ConversationParticipantService {
 
     private final ConversationParticipantDao conversationParticipantDao;
     private final LookupService lookupService;
+    private final SessionManager sessionManager;
 
     private final Logger log =  LoggerFactory.getLogger(ConversationParticipantServiceImpl.class);
 
     public ConversationParticipantServiceImpl(
             ConversationParticipantDao conversationParticipantDao,
-            LookupService lookupService) {
+            LookupService lookupService,
+            SessionManager sessionManager) {
+        this.sessionManager = sessionManager;
         this.conversationParticipantDao = conversationParticipantDao;
         this.lookupService = lookupService;
     }
@@ -51,11 +57,20 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
 
     // REVIEW (BL)
     @Override
-    public ConversationParticipant updateParticipantRole(Long userId,Long participantId,Long conversationId,String role) {
-        if(userId == null || participantId == null || role == null || conversationId == null){
+    public ConversationParticipant updateParticipantRole(Long userId,Long participantId,String role) {
+
+        if(userId == null || participantId == null || role == null){
             log.warn("userId :{} or participantId : {} is NULL ",userId,participantId);
             throw new NullPointerException("userId or participantId or role or conversationId is null");
         }
+
+        ConversationParticipant participantToUpdate = conversationParticipantDao.findById(participantId);
+        if(participantToUpdate == null){
+            log.warn("participantId : {} is NOT FOUND",participantId);
+            throw  new IllegalArgumentException("Participant to update not found.");
+        }
+
+        Long conversationId = participantToUpdate.getConversationId();
 
         ConversationParticipant isAdminParticipant = conversationParticipantDao.getParticipantByConversationIdAndUserId(conversationId, userId);
 
@@ -64,12 +79,16 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
             throw new IllegalArgumentException("You are not allowed to update the role for a participant.");
         }
 
-        ConversationParticipant conversationParticipant = conversationParticipantDao.findById(participantId);
-        conversationParticipant.setRole(lookupService.findByLookupCode(role));
+        participantToUpdate.setRole(lookupService.findByLookupCode(role));
 
-        ConversationParticipant updatedParticipant =  conversationParticipantDao.update(conversationParticipant);
+        ConversationParticipant updatedParticipant =  conversationParticipantDao.update(participantToUpdate);
 
-        // broadcast message to participant (later)
+        // to notify all the existing participants about updated role
+        List<Long> participantUserIds = this.findParticipantUserIdsByConversationId(conversationId);
+        WsResponse removedParticipantResponse = WsResponse.success("updateParticipant",
+                Map.of("conversationId",conversationId,
+                        "participant",updatedParticipant));
+        sessionManager.broadcast(removedParticipantResponse,participantUserIds);
 
         return updatedParticipant;
 
@@ -77,15 +96,8 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
 
     @Override
     public ConversationParticipant findByConversationAndUserId(Long conversationId, Long userId) {
-        ConversationParticipant conversationParticipant = conversationParticipantDao
-                .getParticipantByConversationIdAndUserId(conversationId, userId);
-
-        if(conversationParticipant == null){
-            log.warn("conversationId is NULL");
-            throw new IllegalArgumentException("ConversationParticipant Not Found");
-        }
-
-        return conversationParticipant;
+        return  conversationParticipantDao
+                    .getParticipantByConversationIdAndUserId(conversationId, userId);
     }
 
     @Override
