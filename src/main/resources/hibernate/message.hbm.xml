@@ -33,9 +33,6 @@
                      column="message_attachment_id"
                     lazy="false"/>
 
-
-
-
         <property name="editedAt" column="edited_at" type="long"/>
 
     </class>

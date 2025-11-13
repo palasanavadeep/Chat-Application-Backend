@@ -24,8 +24,8 @@
             </column>
 
             <column name="user_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_participants_user_lite"
-                             references="user_lites(id)"/>
+                <constraints nullable="false" foreignKeyName="fk_participants_user"
+                             references="users(id)"/>
             </column>
 
             <column name="role_id" type="BIGINT">

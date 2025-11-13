@@ -17,7 +17,7 @@
 <!--    </bean>-->
     <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
         <property name="driverClassName" value="org.postgresql.Driver"/>
-        <property name="jdbcUrl" value="jdbc:postgresql://localhost:5432/chatAppDB2"/>
+        <property name="jdbcUrl" value="jdbc:postgresql://localhost:5432/chatAppDB3"/>
         <property name="username" value="postgres"/>
         <property name="password" value="1234"/>
 
@@ -52,6 +52,7 @@
                 <value>hibernate/lookup.hbm.xml</value>
                 <value>hibernate/message.hbm.xml</value>
                 <value>hibernate/messageReceipt.hbm.xml</value>
+                <value>hibernate/userLite.hbm.xml</value>
             </list>
         </property>
         <property name="hibernateProperties">
@@ -71,7 +72,7 @@
     </bean>
 
     <bean id="jwtUtil" class="com.navadeep.ChatApplication.utils.JwtUtil">
-        <property name="secretKey" value="your-very-secret-long-key-12345678901234567890"/>
+        <property name="secretKey" value="key-chatApplicationJwtSecretKey12345678901234567890"/>
         <property name="expirationMs" value="86400000"/> <!-- 24 hours -->
     </bean>
     <bean id="objectMapper" class="com.navadeep.ChatApplication.utils.ObjectMapperFactoryBean"/>
@@ -168,7 +169,6 @@
 
     <bean id="chatEventHandler" class="com.navadeep.ChatApplication.netty.ChatEventHandler">
         <constructor-arg name="sessionManager" ref="sessionManager"/>
-        <constructor-arg name="attachmentService" ref="attachmentServiceImpl"/>
         <constructor-arg name="conversationService" ref="conversationServiceImpl"/>
         <constructor-arg name="conversationParticipantService" ref="conversationParticipantServiceImpl"/>
         <constructor-arg name="messageService" ref="messageServiceImpl"/>
@@ -176,11 +176,15 @@
         <constructor-arg name="userService" ref="userServiceImpl"/>
     </bean>
 
+    <bean id="dispatcher" class="com.navadeep.ChatApplication.netty.Dispatcher">
+        <constructor-arg name="sessionManager" ref="sessionManager"/>
+        <constructor-arg name="chatEventHandler" ref="chatEventHandler"/>
+    </bean>
+
     <!--    Rest API Beans-->
 
-    <bean id="authController" class="com.navadeep.ChatApplication.controller.AuthController">
+    <bean id="authController" class="com.navadeep.ChatApplication.controller.AuthControllerImpl">
         <constructor-arg name="authService" ref="authServiceImpl"/>
-        <constructor-arg name="userService" ref="userServiceImpl"/>
     </bean>
 
 </beans>

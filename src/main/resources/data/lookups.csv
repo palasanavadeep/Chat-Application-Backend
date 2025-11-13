@@ -1,0 +1,13 @@
+lookup_category,lookup_code,lookup_name
+conversationType,PERSONAL,Personal Conversation Lookup
+conversationType,GROUP,Group Conversation Lookup
+participantRole,ADMIN,Admin Participant
+participantRole,MEMBER,Member Participant
+attachmentType,IMAGE,Image Attachment
+attachmentType,PDF,PDF Attachment
+attachmentType,AUDIO,Audio Attachment
+attachmentType,VIDEO,Video Attachment
+messageReceiptStatus,SENT,Sent message status
+messageReceiptStatus,READ,Read message status
+messageReceiptStatus,DELIVERED,Delivered message status
+messageReceiptStatus,DELETED,Deleted message status

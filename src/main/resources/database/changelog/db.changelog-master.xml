@@ -9,7 +9,6 @@
     <!-- Include individual changelogs in dependency order -->
     <include file="database/changelog/changelog-lookup.xml"/>
     <include file="database/changelog/changelog-attachment.xml"/>
-    <include file="database/changelog/changelog-user-lite.xml"/>
     <include file="database/changelog/changelog-user.xml"/>
     <include file="database/changelog/changelog-conversation.xml"/>
     <include file="database/changelog/changelog-conversation-participant.xml"/>
@@ -24,8 +23,8 @@
                                  referencedColumnNames="id"/>
     </changeSet>
 
-    <include file="database/changelog/changelog.lookup-data.xml"/>
-<!--    <include file="database/changelog/changelog.dummydata.xml"/>-->
+    <include file="database/changelog/changelog.csv-lookup-data.xml"/>
+
 
 
 

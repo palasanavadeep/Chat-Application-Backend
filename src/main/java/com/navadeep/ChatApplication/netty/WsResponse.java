@@ -17,11 +17,11 @@ public class WsResponse {
     }
 
     public static WsResponse success(String action, Object data) {
-        return new WsResponse(action, "success", data, null);
+        return new WsResponse(action, "SUCCESS", data, null);
     }
 
     public static WsResponse error(String action, String message) {
-        return new WsResponse(action, "error", null, message);
+        return new WsResponse(action, "ERROR", null, message);
     }
 
     public String getAction() {

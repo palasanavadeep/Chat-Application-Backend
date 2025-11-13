@@ -3,10 +3,7 @@ package com.navadeep.ChatApplication.netty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionManager {
@@ -39,20 +36,20 @@ public class SessionManager {
             }
             frame.release(); // release retained buffer
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
 
-    public List<ChannelHandlerContext> getActiveSessionsForConversation(String convId) {
-        List<String> participantIds =  new ArrayList<>();   /* Fetch from db */
-        List<ChannelHandlerContext> active = new ArrayList<>();
-        for (String id : participantIds) {
-            ChannelHandlerContext ctx = sessions.get(id);
-            if (ctx != null && ctx.channel().isActive()) {
-                active.add(ctx);
-            }
-        }
-        return active;
-    }
+//    public List<ChannelHandlerContext> getActiveSessionsForConversation(String convId) {
+//        List<String> participantIds =  new ArrayList<>();   /* Fetch from db */
+//        List<ChannelHandlerContext> active = new ArrayList<>();
+//        for (String id : participantIds) {
+//            ChannelHandlerContext ctx = sessions.get(id);
+//            if (ctx != null && ctx.channel().isActive()) {
+//                active.add(ctx);
+//            }
+//        }
+//        return active;
+//    }
 }

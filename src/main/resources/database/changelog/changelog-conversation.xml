@@ -31,8 +31,8 @@
             </column>
 
             <column name="created_by_id" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_conversations_user_lite"
-                             references="user_lites(id)"/>
+                <constraints nullable="false" foreignKeyName="fk_conversations_user"
+                             references="users(id)"/>
             </column>
 
             <column name="created_at" type="BIGINT" >

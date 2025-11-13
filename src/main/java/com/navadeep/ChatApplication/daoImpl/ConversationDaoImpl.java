@@ -28,7 +28,6 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
             tx = session.beginTransaction();
             Conversation conversation = session.get(Conversation.class, conversationId);
             if (conversation != null) {
-
                 conversation.getConversationParticipants().add(participant);
                 session.merge(conversation);
             }

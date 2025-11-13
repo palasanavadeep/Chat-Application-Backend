@@ -5,7 +5,6 @@ import com.navadeep.ChatApplication.service.*;
 import com.navadeep.ChatApplication.utils.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -14,18 +13,15 @@ import java.util.Map;
 public class ChatEventHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ChatEventHandler.class);
-
     private final SessionManager sessionManager;
-    private final AttachmentService attachmentService;
     private final ConversationService conversationService;
     private final ConversationParticipantService conversationParticipantService;
     private final MessageService messageService;
     private final MessageReceiptService messageReceiptService;
     private final UserService userService;
 
-    public ChatEventHandler(SessionManager sessionManager, AttachmentService attachmentService, ConversationService conversationService, ConversationParticipantService conversationParticipantService, MessageService messageService, MessageReceiptService messageReceiptService, UserService userService) {
+    public ChatEventHandler(SessionManager sessionManager, ConversationService conversationService, ConversationParticipantService conversationParticipantService, MessageService messageService, MessageReceiptService messageReceiptService, UserService userService) {
         this.sessionManager = sessionManager;
-        this.attachmentService = attachmentService;
         this.conversationService = conversationService;
         this.conversationParticipantService = conversationParticipantService;
         this.messageService = messageService;
@@ -123,7 +119,7 @@ public class ChatEventHandler {
         catch (Exception e){
             log.error(e.getMessage());
             sessionManager.broadcast(
-                    WsResponse.error(Constants.STATUS_ERROR,"Can't Delete Message : "+e.getMessage()),
+                    WsResponse.error(Constants.STATUS_ERROR,"Can't Create Conversation : "+e.getMessage()),
                     List.of(userId)
             );
         }

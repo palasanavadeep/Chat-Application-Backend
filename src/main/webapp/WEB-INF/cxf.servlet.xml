@@ -9,13 +9,13 @@
          https://cxf.apache.org/schemas/jaxrs.xsd"
 >
 
-        <import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf.xml"/>
 
-        <bean id="objectMapper" class="com.navadeep.ChatApplication.utils.ObjectMapperFactoryBean"/>
+    <bean id="objectMapper" class="com.navadeep.ChatApplication.utils.ObjectMapperFactoryBean"/>
 
-        <bean id="jacksonProvider" class="com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider">
-            <property name="mapper" ref="objectMapper"/>
-        </bean>
+    <bean id="jacksonProvider" class="com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider">
+        <property name="mapper" ref="objectMapper"/>
+    </bean>
 
     <bean id="corsInterceptor" class="com.navadeep.ChatApplication.utils.CorsInterceptor">
         <property name="allowOrigin" value="*"/>
@@ -25,23 +25,23 @@
         <property name="maxAge" value="3600"/>
     </bean>
     <!-- Define the JAX-RS server endpoint -->
-        <jaxrs:server id="authServer" address="/auth">
-            <jaxrs:serviceBeans>
-                <ref bean="authController" />
-            </jaxrs:serviceBeans>
-            <jaxrs:providers>
-                <ref bean="jacksonProvider"/>
-                <bean class="org.apache.cxf.jaxrs.provider.MultipartProvider"/>
-            </jaxrs:providers>
+    <jaxrs:server id="authServer" address="/auth">
+        <jaxrs:serviceBeans>
+            <ref bean="authController" />
+        </jaxrs:serviceBeans>
+        <jaxrs:providers>
+            <ref bean="jacksonProvider"/>
+            <bean class="org.apache.cxf.jaxrs.provider.MultipartProvider"/>
+        </jaxrs:providers>
 
-            <jaxrs:inInterceptors>
-                <ref bean="corsInterceptor"/>
-            </jaxrs:inInterceptors>
-            <jaxrs:outInterceptors>
-                <ref bean="corsInterceptor"/>
-            </jaxrs:outInterceptors>
+        <jaxrs:inInterceptors>
+            <ref bean="corsInterceptor"/>
+        </jaxrs:inInterceptors>
+        <jaxrs:outInterceptors>
+            <ref bean="corsInterceptor"/>
+        </jaxrs:outInterceptors>
 
-        </jaxrs:server>
+    </jaxrs:server>
 
 
 </beans>
