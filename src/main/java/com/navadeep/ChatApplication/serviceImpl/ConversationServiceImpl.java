@@ -7,6 +7,10 @@ import com.navadeep.ChatApplication.netty.SessionManager;
 import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.*;
 import com.navadeep.ChatApplication.utils.Constants;
+import com.navadeep.ChatApplication.utils.MESSAGE_STATUS;
+import com.navadeep.ChatApplication.utils.WS_ACTION;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,6 +25,8 @@ public class ConversationServiceImpl implements ConversationService {
     private final LookupService lookupService;
     private final AttachmentService attachmentService;
     private final SessionManager sessionManager;
+
+    Log log = LogFactory.getLog(ConversationServiceImpl.class);
 
     public ConversationServiceImpl(ConversationDao conversationDao, ConversationParticipantDao conversationParticipantDao, MessageReceiptService messageReceiptService, UserLiteDao userLiteDao, ConversationParticipantService conversationParticipantService, LookupService lookupService,AttachmentService attachmentService,SessionManager sessionManager) {
         this.conversationDao = conversationDao;
@@ -38,6 +44,7 @@ public class ConversationServiceImpl implements ConversationService {
                                            List<Long> participants,byte[] conversationImageFile,String fileName) {
 
         if(type == null || type.isEmpty()){
+            log.error("type is null or empty");
             throw new IllegalArgumentException("type is null or empty");
         }
 
@@ -63,6 +70,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         if(type.equalsIgnoreCase(Constants.CONVERSATION_TYPE_GROUP)){
             if(name == null || name.isEmpty()){
+                log.error("name is null or empty");
                 throw new IllegalArgumentException("name is null or empty");
             }
             newConversation.setName(name);
@@ -82,14 +90,15 @@ public class ConversationServiceImpl implements ConversationService {
         Conversation createdConversation = conversationDao.save(newConversation);
 
         // broadcast this new conversation message to all participants (socket)
-        WsResponse wsResponse = WsResponse.success(Constants.WS_ACTION_NEW_CONVERSATION,createdConversation);
+        WsResponse wsResponse = WsResponse.success(WS_ACTION.NEW_CONVERSATION,createdConversation);
         participants.add(userId);
         sessionManager.broadcast(wsResponse,participants);
 
-
+        log.info("conversation created successfully");
         return createdConversation;
     }
 
+    // helper function to build ConversationParticipant object
     private ConversationParticipant generateConversationParticipant(Long userId,String role){
         UserLite user =  userLiteDao.findById(userId);
         ConversationParticipant conversationParticipant = new ConversationParticipant();
@@ -106,15 +115,18 @@ public class ConversationServiceImpl implements ConversationService {
     public Conversation updateConversation(Long userId,Long conversationId,String name,String description,byte[] conversationImageFile,String fileName) {
 
         if(conversationId == null){
-            throw new IllegalArgumentException("conversationId is null or empty");
+            log.error("conversationId is null");
+            throw new IllegalArgumentException("conversationId is null");
         }
 
         ConversationParticipant checkIfParticipant = conversationParticipantService.findByConversationAndUserId(conversationId,userId);
         if(checkIfParticipant == null){
+            log.error("User : "+userId+" is not in the conversation"+conversationId);
             throw new IllegalArgumentException("You are not allowed to update this conversation");
         }
 
         if(!checkIfParticipant.getRole().getLookupCode().equals(Constants.ROLE_ADMIN)){
+            log.error("User : "+userId+" is not allowed to update this conversation");
             throw new RuntimeException("UserId: "+userId+" not allowed to update this conversation");
         }
 
@@ -146,7 +158,7 @@ public class ConversationServiceImpl implements ConversationService {
                 .map(participant -> participant.getUser().getId())
                 .toList();
 
-        WsResponse wsResponse = WsResponse.success(Constants.WS_ACTION_UPDATED_CONVERSATION,updatedConversation);
+        WsResponse wsResponse = WsResponse.success(WS_ACTION.UPDATED_CONVERSATION,updatedConversation);
         sessionManager.broadcast(wsResponse,participantUserIds);
 
         return updatedConversation;
@@ -155,10 +167,12 @@ public class ConversationServiceImpl implements ConversationService {
     @Override
     public void updateLastMessage(Long conversationId,Message message) {
         if(conversationId == null || message == null){
+            log.error("conversationId or message is null");
             throw new IllegalArgumentException("conversationId and message is null");
         }
         Conversation conversation = conversationDao.findById(conversationId);
         if(conversation == null){
+            log.error("conversation not found");
             throw new IllegalArgumentException("conversation is not found");
         }
         conversation.setLastMessage(message);
@@ -172,9 +186,16 @@ public class ConversationServiceImpl implements ConversationService {
      */
     @Override
     public List<Conversation> getUserConversations(Long userId) {
+        if(userId == null){
+            log.error("userId is null");
+            throw new IllegalArgumentException("userId is null");
+        }
         // Fetch user conversations
         List<Conversation> conversations = conversationDao.findUserConversations(userId);
-        if (conversations.isEmpty()) return conversations;
+        if (conversations.isEmpty()) {
+            log.error("User ["+userId+"]has no active conversations ");
+            return conversations;
+        }
 
         // Collect last message IDs
         List<Long> lastMessageIds = conversations.stream()
@@ -192,13 +213,14 @@ public class ConversationServiceImpl implements ConversationService {
         List<MessageReceipt> receiptResults = messageReceiptService
                 .findMessageReceiptsByUserIdAndMessageIds(userId, lastMessageIds);
 
+        // compute hasUnreadMessage for each conversationId -> boolean
         Map<Long, Boolean> hasUnreadMap = receiptResults.stream()
                 .collect(Collectors.toMap(
                         mr -> mr.getMessage().getId(),
                         mr -> {
                             String status = mr.getStatus().getLookupCode();
-                            return !status.equalsIgnoreCase(Constants.MESSAGE_STATUS_READ)
-                                    && !status.equalsIgnoreCase(Constants.MESSAGE_STATUS_DELETED);
+                            return !status.equalsIgnoreCase(MESSAGE_STATUS.READ)
+                                    && !status.equalsIgnoreCase(MESSAGE_STATUS.DELETED);
                         }
                 ));
 
@@ -209,39 +231,41 @@ public class ConversationServiceImpl implements ConversationService {
             boolean hasUnread = lastMsg != null && hasUnreadMap.getOrDefault(lastMsg.getId(), false);
             conv.setHasUnreadMessages(hasUnread);
 
-            // filter participants
+            // filter participants for group send only his participant object
             if(!conv.getType().getLookupCode().equals(Constants.CONVERSATION_TYPE_PERSONAL)){
                 conv.getConversationParticipants().removeIf(cp -> !cp.getUser().getId().equals(userId));
             }
         }
 
         return conversations.stream()
-                .sorted((a, b) -> {
-                    Long aTime = a.getLastMessage() != null ? a.getLastMessage().getCreatedAt() : 0L;
-                    Long bTime = b.getLastMessage() != null ? b.getLastMessage().getCreatedAt() : 0L;
-                    return bTime.compareTo(aTime); // descending (latest first)
-                })
+                .sorted(Comparator.comparingLong((Conversation c) -> {
+                    if (c.getLastMessage() != null) {
+                        return c.getLastMessage().getCreatedAt();
+                    }
+                    return c.getCreatedAt();
+                }).reversed()) // descending
                 .collect(Collectors.toList());
+
     }
 
     @Override
     public ConversationParticipant addParticipant(Long userId,Long newUserId,Long conversationId) {
 
         if(newUserId==null || userId==null || conversationId==null) {
+            log.error("newUserId or conversationId is null");
             throw new IllegalArgumentException("newUserId or conversationId is null");
         }
 
         ConversationParticipant conversationParticipant = conversationParticipantService
                 .findByConversationAndUserId(conversationId,userId);
 
-
-
         if(conversationParticipant == null){
+            log.error("User : "+userId+" is not in the conversation"+conversationId);
             throw new IllegalArgumentException("User : "+userId+" is not in the conversation"+conversationId);
         }
 
-
         if(!conversationParticipant.getRole().getLookupCode().equals(Constants.ROLE_ADMIN)){
+            log.error("Unauthorized access :: Role : "+conversationParticipant.getRole().getLookupCode());
             throw new RuntimeException("UserId: "+userId+" not allowed to add participant to this conversation");
         }
 
@@ -268,10 +292,10 @@ public class ConversationServiceImpl implements ConversationService {
 
         // broadcast to new User
         Conversation conversation = this.findById(conversationId);
-        WsResponse newParticipantResponse = WsResponse.success(Constants.WS_ACTION_NEW_CONVERSATION,conversation);
+        WsResponse newParticipantResponse = WsResponse.success(WS_ACTION.NEW_CONVERSATION,conversation);
         sessionManager.broadcast(newParticipantResponse,List.of(newUserId));
 
-        WsResponse wsResponse = WsResponse.success(Constants.WS_ACTION_NEW_PARTICIPANT,
+        WsResponse wsResponse = WsResponse.success(WS_ACTION.NEW_PARTICIPANT,
                 Map.of("conversationId",conversationId,
                         "participant",resultParticipant));
 
@@ -285,7 +309,7 @@ public class ConversationServiceImpl implements ConversationService {
                 .toList();
 
         sessionManager.broadcast(wsResponse,participantUserIds);
-
+        log.info("User : "+newUserId+" has been added to conversation"+conversationId);
         return resultParticipant;
 
     }
@@ -296,6 +320,7 @@ public class ConversationServiceImpl implements ConversationService {
         ConversationParticipant checkIfParticipant = conversationParticipantService.findById(participantId);
 
         if(checkIfParticipant == null){
+            log.error("User : "+userId+" is not in the conversation"+participantId);
             throw new IllegalArgumentException("Participant with id : "+participantId+" not found");
         }
         Long conversationId = checkIfParticipant.getConversationId();
@@ -303,6 +328,7 @@ public class ConversationServiceImpl implements ConversationService {
         ConversationParticipant isAdminParticipant = conversationParticipantService.findByConversationAndUserId(conversationId,userId);
 
         if(!isAdminParticipant.getRole().getLookupCode().equals(Constants.ROLE_ADMIN)){
+            log.error("Unauthorized access :: Role : "+isAdminParticipant.getRole().getLookupCode());
             throw new RuntimeException("UserId: "+userId+" not allowed to remove participant from this conversation");
         }
 
@@ -311,7 +337,7 @@ public class ConversationServiceImpl implements ConversationService {
         Long removedParticipantUserId = checkIfParticipant.getUser().getId();
 
         // to remove the conversation from the participant's view
-        WsResponse wsResponse = WsResponse.success(Constants.WS_ACTION_REMOVED_CONVERSATION,
+        WsResponse wsResponse = WsResponse.success(WS_ACTION.REMOVED_CONVERSATION,
                 Map.of("conversationId",conversationId));
         sessionManager.broadcast(wsResponse,
                 List.of(removedParticipantUserId));
@@ -322,15 +348,21 @@ public class ConversationServiceImpl implements ConversationService {
                 .stream()
                 .filter(id -> !id.equals(removedParticipantUserId))
                 .toList();
-        WsResponse removedParticipantResponse = WsResponse.success(Constants.WS_ACTION_REMOVED_PARTICIPANT,
+        WsResponse removedParticipantResponse = WsResponse.success(WS_ACTION.REMOVED_PARTICIPANT,
                 Map.of("conversationId",conversationId,
                         "participantId",participantId));
         sessionManager.broadcast(removedParticipantResponse,participantUserIds);
+
+        log.info("Participant : "+participantId+" has been removed from conversation"+conversationId);
 
     }
 
     @Override
     public List<ConversationParticipant> getAllParticipants(Long conversationId) {
+        if (conversationId == null) {
+            log.error("ConversationId is null");
+            throw new IllegalArgumentException("conversationId is null");
+        }
         return conversationDao.getAllParticipants(conversationId);
     }
 
@@ -339,6 +371,7 @@ public class ConversationServiceImpl implements ConversationService {
     public void leaveConversation(Long userId, Long conversationId) {
         ConversationParticipant participant = conversationParticipantService.findByConversationAndUserId(conversationId,userId);
         if(participant == null){
+            log.error("User : "+userId+" is not in the conversation"+conversationId);
             throw new IllegalArgumentException("User : "+userId+" is not in the conversation"+conversationId);
         }
         if(participant.getUser().getId().equals(userId)){
@@ -346,7 +379,7 @@ public class ConversationServiceImpl implements ConversationService {
             conversationParticipantDao.update(participant);
 
             // broadcast to userId
-            WsResponse wsResponse = WsResponse.success(Constants.WS_ACTION_REMOVED_CONVERSATION,
+            WsResponse wsResponse = WsResponse.success(WS_ACTION.REMOVED_CONVERSATION,
                     Map.of("conversationId",conversationId));
             sessionManager.broadcast(wsResponse, List.of(userId));
 
@@ -357,21 +390,25 @@ public class ConversationServiceImpl implements ConversationService {
                     .filter(id -> !id.equals(participant.getUser().getId()))
                     .toList();
 
-            WsResponse removedParticipantResponse = WsResponse.success(Constants.WS_ACTION_REMOVED_PARTICIPANT,
+            WsResponse removedParticipantResponse = WsResponse.success(WS_ACTION.REMOVED_PARTICIPANT,
                     Map.of("conversationId",conversationId,
                             "participantId",participant.getUser().getId()));
             sessionManager.broadcast(removedParticipantResponse,participantUserIds);
+
+            log.info("User : "+userId+" has left the conversation"+conversationId);
         }
     }
 
     @Override
     public Conversation findById(Long id) {
         if(id == null){
+            log.error("ConversationId is null");
             throw new IllegalArgumentException("id is null");
         }
         Conversation conversation = conversationDao.findById(id);
 
         if(conversation == null){
+            log.error("conversation not found");
             throw new IllegalArgumentException("conversation is not found");
         }
 

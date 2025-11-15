@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="add_fk_constraint_to_conversations" author="navadeep">
+        <addForeignKeyConstraint baseTableName="conversations"
+                                 baseColumnNames="last_message_id"
+                                 constraintName="fk_conversations_message"
+                                 referencedTableName="messages"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

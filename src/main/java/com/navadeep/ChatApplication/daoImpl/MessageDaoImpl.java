@@ -16,64 +16,6 @@ public class MessageDaoImpl extends BaseDaoImpl<Message> implements MessageDao {
         super(sessionFactory, Message.class);
     }
 
-
-//    @Override
-//    public List<Message> findByConversationId(Long userId,Long conversationId) {
-//        try (Session session = sessionFactory.openSession()) {
-//
-////            CriteriaBuilder cb = session.getCriteriaBuilder();
-////            CriteriaQuery<Message> cq = cb.createQuery(Message.class);
-////            Root<Message> messageRoot = cq.from(Message.class);
-////
-////            // Join with MessageReceipt
-////            Join<Message, MessageReceipt> receiptJoin = messageRoot.join("messageReceipts", JoinType.INNER);
-////
-////            cq.select(messageRoot)
-////                    .distinct(true)
-////                    .where(
-////                            cb.and(
-////                                    cb.equal(messageRoot.get("conversationId"), conversationId),
-////                                    cb.equal(receiptJoin.get("userId"), userId),
-////                                    cb.notEqual(receiptJoin.get("status").get("lookupCode"), "DELETED")
-////                            )
-////                    )
-////                    .orderBy(cb.asc(messageRoot.get("createdAt")));
-////
-////            return session.createQuery(cq).getResultList();
-//            CriteriaBuilder cb = session.getCriteriaBuilder();
-//            CriteriaQuery<Message> cq = cb.createQuery(Message.class);
-//            Root<Message> m = cq.from(Message.class);
-//
-//// Subquery to filter messages having valid receipts
-//            Subquery<Long> sub = cq.subquery(Long.class);
-//            Root<MessageReceipt> mr = sub.from(MessageReceipt.class);
-//            sub.select(mr.get("message").get("id"))
-//                    .where(
-//                            cb.and(
-//                                    cb.equal(mr.get("userId"), userId),
-//                                    cb.equal(mr.get("message").get("conversationId"), conversationId),
-//                                    cb.notEqual(mr.get("status").get("lookupCode"), "DELETED")
-//                            )
-//                    );
-//
-//            cq.select(m)
-//                    .where(m.get("id").in(sub))
-//                    .orderBy(cb.asc(m.get("createdAt")));
-//
-//            return session.createQuery(cq).getResultList();
-//
-//
-//
-//        } catch (HibernateException e) {
-//            log.error("Error Message ; {}",e.getMessage(),e);
-//            return Collections.emptyList();
-//        }
-//    }
-
-
-
-    // future versions
-
     @Override
     public List<Message> findByConversationId(Long userId, Long conversationId) {
         try (Session session = sessionFactory.openSession()) {
@@ -108,7 +50,7 @@ public class MessageDaoImpl extends BaseDaoImpl<Message> implements MessageDao {
             return session.createQuery(cq).getResultList();
 
         } catch (HibernateException e) {
-            log.error("Error Message ; {}", e.getMessage(), e);
+            log.error("findByConversationId("+conversationId+") :: "+ e.getMessage(), e);
             return Collections.emptyList();
         }
     }
@@ -126,7 +68,7 @@ public class MessageDaoImpl extends BaseDaoImpl<Message> implements MessageDao {
 
             return session.createQuery(cq).getResultList();
         } catch (HibernateException e) {
-            log.error("Error Message ; {}",e.getMessage(),e);
+            log.error("findBySenderId("+senderId+") :: "+ e.getMessage(), e);
             return null;
         }
     }

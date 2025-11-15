@@ -36,7 +36,7 @@ public class ConversationParticipantDaoImpl extends BaseDaoImpl<ConversationPart
             return session.createQuery(cq).getResultList();
 
         } catch (HibernateException e) {
-            log.error("Error Message :: {}", e.getMessage(), e);
+            log.error("findParticipantUserIdsByConversationId() :: "+ e.getMessage(), e);
             return Collections.emptyList();
         }
     }
@@ -61,7 +61,7 @@ public class ConversationParticipantDaoImpl extends BaseDaoImpl<ConversationPart
             return session.createQuery(cq).uniqueResultOptional().orElse(null);
 
         } catch (HibernateException e) {
-            log.error("Error Message : {}", e.getMessage(), e);
+            log.error("getParticipantByConversationIdAndUserId() : "+ e.getMessage(), e);
             return null;
         }
     }

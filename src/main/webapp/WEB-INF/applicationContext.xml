@@ -75,13 +75,10 @@
         <property name="secretKey" value="key-chatApplicationJwtSecretKey12345678901234567890"/>
         <property name="expirationMs" value="86400000"/> <!-- 24 hours -->
     </bean>
-    <bean id="objectMapper" class="com.navadeep.ChatApplication.utils.ObjectMapperFactoryBean"/>
+    <bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper"/>
     <bean id="sessionManager" class="com.navadeep.ChatApplication.netty.SessionManager">
         <property name="mapper" ref="objectMapper"/>
     </bean>
-
-
-
 
     <!--    Dao Impl-->
     <bean id="attachmentDaoImpl" class="com.navadeep.ChatApplication.daoImpl.AttachmentDaoImpl">

@@ -11,19 +11,20 @@ import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.AuthService;
 import com.navadeep.ChatApplication.utils.JwtUtil;
 import com.navadeep.ChatApplication.utils.ApiResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.Map;
 
 
 public class AuthServiceImpl implements AuthService {
 
     private final UserDao userDao;
-    private final UserLiteDao userLiteDao;  // remove useless
+    private final UserLiteDao userLiteDao;
     private final AttachmentService attachmentService;
     private final JwtUtil jwtUtil;
 
-    Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+    Log log = LogFactory.getLog(AuthServiceImpl.class);
 
     AuthServiceImpl(UserDaoImpl userDao, UserLiteDaoImpl userLiteDao,AttachmentServiceImpl attachmentService, JwtUtil jwtUtil) {
         this.userDao = userDao;
@@ -37,17 +38,18 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userDao.findByUsername(username);
         if(user == null){
-            log.warn("User with username {} not found",username);
+            log.error("User with username not found"+username);
             throw new RuntimeException("user with "+username+" not found");
         }
 
         if(!user.getPassword().equals(password)){
-            log.warn("Password Mismatch for User {}",username);
+            log.error("Password Mismatch for User {}"+username);
             throw new RuntimeException("Credentials didn't match! Try again..");
         }
 
         String token = jwtUtil.generateToken(user.getId().toString());  // generate token from JWT util.
 
+        log.info("User ["+username+"] logged in successfully");
         return new ApiResponse(
                 true,
                 "Login Successful",
@@ -58,17 +60,15 @@ public class AuthServiceImpl implements AuthService {
     public ApiResponse register(User user,byte[] file,String fileName) {
 
         if(user.getPassword().length() < 6){
-            log.warn("Weak Password for User {}",user.getUsername());
+            log.error("Weak Password for User {}"+user.getUsername());
             throw new RuntimeException("password length is less than 6");
         }
         // check if username already exist
         UserLite checkUsername = userLiteDao.findByUsername(user.getUsername());
         if(checkUsername != null){
-            log.warn("User with Username {} already exists",user.getUsername());
+            log.error("User with Username {} already exists"+user.getUsername());
             throw new RuntimeException("username already is exist");
         }
-
-        // todo :: hash password (next)
 
         if(file != null && fileName != null){
             Attachment profileImageAttachment = attachmentService.save(fileName,file);
@@ -98,7 +98,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout(Long userId) {
         UserLite user = userLiteDao.findById(userId);
         if(user == null){
-            log.warn("User with id {} not found",userId);
+            log.error("User with id {} not found"+userId);
             throw new RuntimeException("user not found");
         }
         user.setLastSeenAt(System.currentTimeMillis());

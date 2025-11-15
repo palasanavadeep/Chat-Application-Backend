@@ -6,16 +6,16 @@ import com.navadeep.ChatApplication.utils.ApiResponse;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 public class AuthControllerImpl implements  AuthController{
 
     private final AuthService authService;
-
-    private static final Logger log =  LoggerFactory.getLogger(AuthControllerImpl.class);
+    private final Log log = LogFactory.getLog(AuthControllerImpl.class.getName());
 
     public AuthControllerImpl(AuthService authService) {
         this.authService = authService;
@@ -32,10 +32,10 @@ public class AuthControllerImpl implements  AuthController{
             ApiResponse userResponse = authService
                     .login(user.getUsername(),user.getPassword());
 
-            log.info("User {} logged in successfully",user.getUsername());
+            log.info("User {"+user.getUsername()+"} logged in successfully ");
             return Response.ok(userResponse).build();
         }catch (Exception e){
-            log.error("Login error : {}",e.getMessage());
+            log.error("Login error : "+e.getMessage());
             return Response
                     .status(Response.Status.UNAUTHORIZED)
                     .entity(new ApiResponse(
@@ -52,7 +52,6 @@ public class AuthControllerImpl implements  AuthController{
             @Multipart("profileImageFile") Attachment profileImageFile,
             @Multipart("user") User user
     ){
-
         try{
             if(user.getUsername() == null || user.getPassword() == null || user.getEmail() == null ){
                 throw new RuntimeException("Username  and password and Email can't be NULL");
@@ -71,13 +70,13 @@ public class AuthControllerImpl implements  AuthController{
 
             ApiResponse registeredUser = authService.register(user,file,fileName);
 
-            log.info("User {} registered successfully",user);
-            System.out.println("registered user : "+registeredUser);
+            log.info("User: "+user+" registered successfully");
 
             return Response.ok(registeredUser)
                     .build();
+
         }catch (Exception e){
-            log.error("Registration error : {}",e.getMessage());
+            log.error("Registration error :"+e.getMessage(),e);
             return Response
                     .status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new ApiResponse(

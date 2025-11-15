@@ -24,6 +24,7 @@
                   not-null="true"/>
 
         <property name="lookupCode"
+                  unique="true"
                   column="lookup_code"
                   type="string"
                   not-null="true"/>

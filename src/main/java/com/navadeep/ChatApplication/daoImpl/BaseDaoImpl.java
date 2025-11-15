@@ -1,12 +1,17 @@
 package com.navadeep.ChatApplication.daoImpl;
 
 import com.navadeep.ChatApplication.dao.BaseDao;
+
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Root;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 import java.util.List;
 
@@ -16,7 +21,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
     protected SessionFactory sessionFactory;
     private final Class<T> tClass;
 
-    Logger log =  LoggerFactory.getLogger(this.getClass());
+    Log log =  LogFactory.getLog(this.getClass());
 
     public BaseDaoImpl(SessionFactory sessionFactory, Class<T> tClass) {
         this.sessionFactory = sessionFactory;
@@ -29,7 +34,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
             return session.get(tClass, id);
         }
         catch (HibernateException e) {
-            log.error("Error in findById({}) : {}",id,e.getMessage());
+            log.error("Error in findById("+id+") : "+e.getMessage(),e);
             throw e;
         }
     }
@@ -37,10 +42,19 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
     @Override
     public List<T> findAll() {
         try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("from " + tClass.getName(), tClass).list();
+
+            CriteriaBuilder cb = session.getCriteriaBuilder();
+
+            CriteriaQuery<T> cq = cb.createQuery(tClass);
+
+            Root<T> root = cq.from(tClass);
+
+            cq.select(root);
+
+            return session.createQuery(cq).getResultList();
         }
         catch (HibernateException e) {
-            log.error("Error in findAll() {}",e.getMessage());
+            log.error("Error in findAll() :"+e.getMessage(),e);
             throw e;
         }
     }
@@ -54,7 +68,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
             tx.commit();
             return entity;
         } catch (HibernateException e) {
-            log.error("Error in save({}) : {}",entity,e.getMessage());
+            log.error("Error in save("+entity+") : "+e.getMessage(),e);
             if (tx != null) tx.rollback();
             throw e;
         }
@@ -69,7 +83,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
             tx.commit();
             return entity;
         } catch (HibernateException e) {
-            log.error("Error in update({}) : {}",entity,e.getMessage());
+            log.error("Error in update("+entity+") : "+e.getMessage(),e);
             if (tx != null) tx.rollback();
             throw e;
         }
@@ -83,7 +97,7 @@ public class BaseDaoImpl<T> implements BaseDao<T> {
             session.remove(entity);
             tx.commit();
         } catch (HibernateException e) {
-            log.error("Error in delete({}) : {}",entity,e.getMessage());
+            log.error("Error in delete("+entity+") : "+e.getMessage(),e);
             if (tx != null) tx.rollback();
             throw e;
         }

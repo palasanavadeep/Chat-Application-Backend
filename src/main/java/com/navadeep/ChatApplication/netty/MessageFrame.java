@@ -11,15 +11,36 @@ public class MessageFrame {
     private String fileName;
 
     // Getters & Setters
-    public String getAction() { return action; }
-    public void setAction(String a) { action = a; }
 
-    public Map<String, Object> getData() { return data; }
-    public void setData(Map<String, Object> d) { data = d; }
+    public String getAction() {
+        return action;
+    }
 
-    public String getFile() { return file; }
-    public void setFile(String b) { file = b; }
+    public void setAction(String action) {
+        this.action = action;
+    }
 
-    public String getFileName() { return fileName; }
-    public void setFileName(String n) { fileName = n; }
+    public Map<String, Object> getData() {
+        return data;
+    }
+
+    public void setData(Map<String, Object> data) {
+        this.data = data;
+    }
+
+    public String getFile() {
+        return file;
+    }
+
+    public void setFile(String file) {
+        this.file = file;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
 }

@@ -12,17 +12,6 @@ public class ConversationParticipant extends BaseDate{
     private boolean isMuted;
     private boolean isPinned;
 
-    @Override
-    public String toString() {
-        return "ConversationParticipant{" +
-                "conversationId=" + conversationId +
-                "user=" + user +
-                ", role=" + role +
-                ", leftAt=" + leftAt +
-                ", isMuted=" + isMuted +
-                ", isPinned=" + isPinned +
-                '}';
-    }
 
     public ConversationParticipant() {}
 
@@ -72,5 +61,17 @@ public class ConversationParticipant extends BaseDate{
 
     public void setIsPinned(boolean pinned) {
         isPinned = pinned;
+    }
+
+    @Override
+    public String toString() {
+        return "ConversationParticipant{" +
+                "conversationId=" + conversationId +
+                "user=" + user +
+                ", role=" + role +
+                ", leftAt=" + leftAt +
+                ", isMuted=" + isMuted +
+                ", isPinned=" + isPinned +
+                '}';
     }
 }

@@ -20,7 +20,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="lookup_code" type="VARCHAR(50)">
-                <constraints nullable="false"/>
+                <constraints nullable="false" unique="true"/>
             </column>
         </createTable>
     </changeSet>

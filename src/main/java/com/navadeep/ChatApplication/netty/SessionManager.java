@@ -3,20 +3,26 @@ package com.navadeep.ChatApplication.netty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SessionManager {
+
+    Log log = LogFactory.getLog(SessionManager.class);
     private final ConcurrentHashMap<String, ChannelHandlerContext> sessions = new ConcurrentHashMap<>();
     private ObjectMapper mapper;
 
     public void addSession(String userId, ChannelHandlerContext ctx) {
         sessions.put(userId, ctx);
-        System.out.println("No of Active Users : "+sessions.size());
+        log.info("User ["+ userId+"] added  No of Active Users : "+sessions.size());
     }
 
     public void removeSession(String userId) {
         sessions.remove(userId);
+        log.info("User ["+userId+"] removed  No of Active Users : "+sessions.size());
     }
 
     public void setMapper(ObjectMapper mapper) {
@@ -36,20 +42,7 @@ public class SessionManager {
             }
             frame.release(); // release retained buffer
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            log.error(e.getMessage(),e);
         }
     }
-
-
-//    public List<ChannelHandlerContext> getActiveSessionsForConversation(String convId) {
-//        List<String> participantIds =  new ArrayList<>();   /* Fetch from db */
-//        List<ChannelHandlerContext> active = new ArrayList<>();
-//        for (String id : participantIds) {
-//            ChannelHandlerContext ctx = sessions.get(id);
-//            if (ctx != null && ctx.channel().isActive()) {
-//                active.add(ctx);
-//            }
-//        }
-//        return active;
-//    }
 }

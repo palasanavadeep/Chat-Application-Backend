@@ -10,14 +10,15 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.AttributeKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 import java.nio.charset.StandardCharsets;
 
 public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     private static final AttributeKey<String> USER_ID_KEY = AttributeKey.valueOf("userId");
+    Log log = LogFactory.getLog(ChatWebSocketHandler.class);
 
     private final SessionManager sessionManager;
     private final ObjectMapper mapper;
@@ -26,7 +27,6 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     private final StringBuilder frameBuffer = new StringBuilder(); // Buffer for fragmented frames
 
-    Logger log = LoggerFactory.getLogger(ChatWebSocketHandler.class);
 
     public ChatWebSocketHandler(ApplicationContext springContext) {
         this.sessionManager = (SessionManager) springContext.getBean("sessionManager");
@@ -36,7 +36,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof FullHttpRequest) {
             handleHandshake(ctx, (FullHttpRequest) msg);
         } else if (msg instanceof WebSocketFrame) {
@@ -57,6 +57,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
                         true,
                         20 * 1024 * 1024 // max frame size 20 MB
                 );
+
         WebSocketServerHandshaker handshaker = wsFactory.newHandshaker(req);
         if (handshaker == null) {
             WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
@@ -114,7 +115,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
             dispatcher.dispatch(userId, msg);
 
         } catch (Exception e) {
-            log.error("JSON parse error: {}", e.getMessage(), e);
+            log.error("JSON parse error: {}"+e.getMessage(), e);
             WsResponse response = WsResponse.error("ERROR", "Invalid JSON or too large payload");
             ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
         }
@@ -150,7 +151,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        log.error("Exception caught: {}", cause.getMessage(), cause);
+        log.error("Exception caught: "+cause.getMessage(), cause);
         WsResponse response = WsResponse.error(Constants.STATUS_ERROR, cause.getMessage());
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }

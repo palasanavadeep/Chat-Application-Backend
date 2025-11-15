@@ -11,16 +11,6 @@ public class UserLite extends BaseDate {
     private boolean status;
     private Long lastSeenAt;
 
-
-
-    public UserLite(String username, String displayName, Attachment profileImage, boolean status, Long lastSeenAt) {
-        this.username = username;
-        this.displayName = displayName;
-        this.profileImage = profileImage;
-        this.status = status;
-        this.lastSeenAt = lastSeenAt;
-    }
-
     public UserLite() {}
 
     public String getUsername() {
@@ -71,6 +61,6 @@ public class UserLite extends BaseDate {
                 ", profileImage=" + profileImage +
                 ", status=" + status +
                 ", lastSeenAt=" + lastSeenAt +
-                '}'+super.toString();
+                '}';
     }
 }

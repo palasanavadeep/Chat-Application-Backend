@@ -34,7 +34,7 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
 
         }
         catch (HibernateException e) {
-            log.error("Error Message ; {}",e.getMessage(),e);
+            log.error("findByMessageId("+messageId+") :: "+e.getMessage(),e);
             return null;
         }
     }
@@ -56,7 +56,7 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
             }
             tx.commit();
         } catch (HibernateException e) {
-            log.error("Error Message ; {}",e.getMessage(),e);
+            log.error("SaveOrUpdateAll() :: "+e.getMessage(),e);
             if (tx != null) tx.rollback();
             throw e;
         }
@@ -87,7 +87,7 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
             return session.createQuery(cq).getResultList();
         }
         catch (HibernateException e){
-            log.error("Error Message ; {}",e.getMessage(),e);
+            log.error("findByUserIdAndMessageIds() :: "+e.getMessage(),e);
             return null;
         }
     }
@@ -112,7 +112,7 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
             return session.createQuery(cq).uniqueResultOptional().orElse(null);
         }
         catch (HibernateException e) {
-            log.error("Error Message ; {}",e.getMessage(),e);
+            log.error("findByUserIdAndMessageId() :: "+e.getMessage(),e);
             return null;
         }
     }
@@ -140,7 +140,7 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
             updatedCount = session.createMutationQuery(update).executeUpdate();
             tx.commit();
         } catch (Exception e) {
-            log.error("Error Message ; {}",e.getMessage(),e);
+            log.error("Error in marking Conversation("+conversationId+") As Read"+e.getMessage(),e);
             if (tx != null) tx.rollback();
         }
 
@@ -170,7 +170,7 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
             updatedCount = session.createMutationQuery(update).executeUpdate();
             tx.commit();
         } catch (Exception e) {
-            log.error("Error Message ; {}",e.getMessage(),e);
+            log.error("Error in marking the message("+messageId+") as Read "+e.getMessage(),e);
             if (tx != null) tx.rollback();
         }
 

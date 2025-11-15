@@ -9,6 +9,7 @@ public class MessageReceipt extends PersistentObject {
     private Message message;
     private Long userId;
     private Lookup status;  // SENT,DELIVERED,READ,DELETED
+
     public MessageReceipt() {}
     public Long getUserId() {
         return userId;

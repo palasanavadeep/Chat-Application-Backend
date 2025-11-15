@@ -2,12 +2,16 @@ package com.navadeep.ChatApplication.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
 public class JwtUtil {
+
+    Log log = LogFactory.getLog(JwtUtil.class);
 
     private String secretKey;
     private long expirationMs;
@@ -47,7 +51,7 @@ public class JwtUtil {
             return claims.getBody().getSubject(); // userId
         } catch (JwtException e) {
             // includes ExpiredJwtException, MalformedJwtException, etc.
-            System.out.println("Invalid or expired JWT: " + e.getMessage());
+            log.error("Invalid or expired JWT: " + e.getMessage(),e);
             return null;
         }
     }

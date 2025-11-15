@@ -9,8 +9,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocket08FrameDecoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -18,7 +18,7 @@ public class NettyWebSocketServer implements ApplicationContextAware {
 
     private final int port;
     private ApplicationContext applicationContext;
-    Logger log =  LoggerFactory.getLogger(NettyWebSocketServer.class);
+    Log log =  LogFactory.getLog(NettyWebSocketServer.class);
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private Channel serverChannel;
@@ -51,9 +51,7 @@ public class NettyWebSocketServer implements ApplicationContextAware {
                                         false, // not masking client frames
                                         20 * 1024 * 1024 // max frame length 20 MB
                                 ));
-//                                pipeline.addLast(new JwtWsHandshakeHandler(applicationContext));
-//                                pipeline.addLast(new WebSocketServerProtocolHandler("/ws", null, true, 5 * 1024 * 1024));
-                                pipeline.addLast(new ChatWebSocketHandler(applicationContext));
+                               pipeline.addLast(new ChatWebSocketHandler(applicationContext));
                             }
                         })
                         .option(ChannelOption.SO_BACKLOG, 1024)
@@ -62,10 +60,10 @@ public class NettyWebSocketServer implements ApplicationContextAware {
 
                 ChannelFuture future = bootstrap.bind(port).sync();
                 serverChannel = future.channel();
-                log.info("Netty WebSocket server started on port {}", port);
+                log.info("Netty WebSocket server started on port :: "+ port);
                 serverChannel.closeFuture().sync();
             } catch (Exception e) {
-                log.error("Unable to start Netty Server :: {}",e.getMessage(),e);
+                log.error("Unable to start Netty Server :: "+e.getMessage(),e);
             } finally {
                 shutdown();
             }

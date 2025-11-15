@@ -7,6 +7,9 @@ import com.navadeep.ChatApplication.domain.MessageReceipt;
 import com.navadeep.ChatApplication.service.LookupService;
 import com.navadeep.ChatApplication.service.MessageReceiptService;
 import com.navadeep.ChatApplication.utils.Constants;
+import com.navadeep.ChatApplication.utils.MESSAGE_STATUS;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,6 +17,7 @@ import java.util.Objects;
 public class MessageReceiptServiceImpl implements MessageReceiptService {
     private final MessageReceiptDao messageReceiptDao;
     private final LookupService lookupService;
+    Log log = LogFactory.getLog(MessageReceiptServiceImpl.class);
 
     public MessageReceiptServiceImpl(MessageReceiptDao messageReceiptDao, LookupService lookupService) {
         this.messageReceiptDao = messageReceiptDao;
@@ -22,32 +26,67 @@ public class MessageReceiptServiceImpl implements MessageReceiptService {
 
     @Override
     public MessageReceipt save(MessageReceipt messageReceipt) {
-        return messageReceiptDao.save(messageReceipt);
+        if (messageReceipt == null) {
+            log.error("messageReceipt is null");
+            throw new RuntimeException("messageReceipt is null");
+        } else {
+            return messageReceiptDao.save(messageReceipt);
+        }
     }
 
     @Override
     public MessageReceipt update(MessageReceipt messageReceipt) {
-        return messageReceiptDao.update(messageReceipt);
+        if (messageReceipt == null) {
+            log.error("messageReceipt is null");
+            throw new RuntimeException("messageReceipt is null");
+        } else {
+            return messageReceiptDao.update(messageReceipt);
+        }
     }
 
     @Override
     public void saveOrUpdateMessageReceipts(List<MessageReceipt> messageReceipts) {
-        messageReceiptDao.saveOrUpdateAll(messageReceipts);
+        if (messageReceipts == null || messageReceipts.isEmpty()) {
+            log.error("messageReceipts is null or empty");
+            throw new RuntimeException("messageReceipts is null or empty");
+        } else {
+            messageReceiptDao.saveOrUpdateAll(messageReceipts);
+        }
     }
 
     @Override
     public List<MessageReceipt> findMessageReceiptsByUserIdAndMessageIds(Long userId, List<Long> messageIds) {
+        if(userId == null){
+            log.error("userId is null");
+            throw new RuntimeException("userId is null");
+        }
+        if(messageIds == null || messageIds.isEmpty()) {
+            log.error("messageIds is null or empty");
+            throw new RuntimeException("messageIds is null or empty");
+        }
         return messageReceiptDao.findByUserIdAndMessageIds(userId,messageIds);
     }
 
     @Override
     public MessageReceipt findByUserIdAndMessageId(Long userId, Long messageId) {
-        return messageReceiptDao.findByUserIdAndMessageId(userId,messageId);
+        if(userId == null && messageId == null){
+            log.error("userId and messageId are null");
+            throw new RuntimeException("userId and messageId are null");
+        }
+        else {
+            return messageReceiptDao.findByUserIdAndMessageId(userId, messageId);
+        }
     }
 
     @Override
     public List<MessageReceipt> findByMessageId(Long messageId) {
-        return messageReceiptDao.findByMessageId(messageId);
+        if(messageId == null){
+            log.error("messageId is null");
+            throw new RuntimeException("messageId is null");
+        }
+        else {
+            return messageReceiptDao.findByMessageId(messageId);
+        }
     }
 
     @Override
@@ -55,8 +94,7 @@ public class MessageReceiptServiceImpl implements MessageReceiptService {
         if (conversationId == null) {
             throw new RuntimeException("conversationId is null");
         }
-
-        Lookup readStatus = lookupService.findByLookupCode(Constants.MESSAGE_STATUS_READ);
+        Lookup readStatus = lookupService.findByLookupCode(MESSAGE_STATUS.READ);
         return messageReceiptDao.markConversationAsRead(userId, conversationId, readStatus);
     }
 
@@ -65,7 +103,7 @@ public class MessageReceiptServiceImpl implements MessageReceiptService {
         if (messageId == null) {
             throw new RuntimeException("messageId is null");
         }
-        Lookup readStatus = lookupService.findByLookupCode(Constants.MESSAGE_STATUS_READ);
+        Lookup readStatus = lookupService.findByLookupCode(MESSAGE_STATUS.READ);
         return messageReceiptDao.markMessageAsRead(userId, messageId, readStatus);
     }
 

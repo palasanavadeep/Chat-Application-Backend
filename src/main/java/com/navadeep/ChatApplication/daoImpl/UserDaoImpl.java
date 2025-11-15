@@ -32,7 +32,7 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
             return session.createQuery(cq).uniqueResultOptional().orElse(null);
         }
         catch (HibernateException e) {
-            log.error("Error Message : {}",e.getMessage(),e);
+            log.error("findByEmail("+email+") :: "+e.getMessage(),e);
             return null;
         }
     }
@@ -53,7 +53,7 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
             return session.createQuery(cq).uniqueResultOptional().orElse(null);
         }
         catch (HibernateException e) {
-            log.error("Error Message : {}",e.getMessage(),e);
+            log.error("findByUsername("+username+") : "+e.getMessage(),e);
             return null;
         }
     }

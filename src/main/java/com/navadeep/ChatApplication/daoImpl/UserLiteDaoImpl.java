@@ -31,8 +31,8 @@ public class UserLiteDaoImpl extends BaseDaoImpl<UserLite> implements UserLiteDa
             return session.createQuery(cq).uniqueResultOptional().orElse(null);
         }
         catch (HibernateException e) {
-            log.error("Error Message : {}",e.getMessage(),e);
-            return null;
+            log.error("findByUsername("+username+") :: "+e.getMessage(),e);
+            throw e;
         }
     }
 }

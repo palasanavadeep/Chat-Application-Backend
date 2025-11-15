@@ -11,7 +11,7 @@
 
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
 
-    <bean id="objectMapper" class="com.navadeep.ChatApplication.utils.ObjectMapperFactoryBean"/>
+    <bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper"/>
 
     <bean id="jacksonProvider" class="com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider">
         <property name="mapper" ref="objectMapper"/>
@@ -24,6 +24,7 @@
         <property name="allowedHeaders" value="Origin,Content-Type,Accept,Authorization,Content-Disposition,X-Requested-With"/>
         <property name="maxAge" value="3600"/>
     </bean>
+
     <!-- Define the JAX-RS server endpoint -->
     <jaxrs:server id="authServer" address="/auth">
         <jaxrs:serviceBeans>

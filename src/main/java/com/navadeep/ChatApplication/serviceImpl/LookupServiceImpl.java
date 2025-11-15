@@ -4,6 +4,8 @@ import com.navadeep.ChatApplication.dao.LookupDao;
 import com.navadeep.ChatApplication.daoImpl.LookupDaoImpl;
 import com.navadeep.ChatApplication.domain.Lookup;
 import com.navadeep.ChatApplication.service.LookupService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -14,7 +16,7 @@ import java.util.List;
 public class LookupServiceImpl implements LookupService {
 
     private final LookupDao lookupDao;
-
+    Log log = LogFactory.getLog(LookupServiceImpl.class);
     public LookupServiceImpl(LookupDao lookupDao) {
         this.lookupDao = lookupDao;
     }
@@ -22,6 +24,7 @@ public class LookupServiceImpl implements LookupService {
     @Override
     public Lookup save(String name,String category, String code) {
         if(category == null || code == null || category.isEmpty() || code.isEmpty()){
+            log.error("Category or code is null or code is empty");
             throw new RuntimeException("Category or code is null or empty");
         }
 
@@ -29,6 +32,7 @@ public class LookupServiceImpl implements LookupService {
         if(checkCode != null
                 && checkCode.getLookupCode().equals(code)
                 && checkCode.getLookupCategory().equals(category)){
+            log.error("Code is already exist");
             throw new RuntimeException("Code is already exist");
         }
 
@@ -39,16 +43,17 @@ public class LookupServiceImpl implements LookupService {
 
         return lookupDao.save(newLookup);
 
-
     }
 
     @Override
     public Lookup update(Lookup lookup) {
         if(lookup == null || lookup.getId() == null){
+            log.error("Lookup id is null or lookupId is null");
             throw new RuntimeException("Lookup id is null or empty");
         }
 
         if(lookup.getLookupCategory() == null || lookup.getLookupCode() == null){
+            log.error("Lookup category or code is null or empty");
             throw new RuntimeException("Lookup code is null or empty");
         }
 
@@ -57,8 +62,13 @@ public class LookupServiceImpl implements LookupService {
 
     @Override
     public void delete(Long id) {
+        if (id == null) {
+            log.error("Lookup id is null");
+            throw new RuntimeException("Lookup id is null or empty");
+        }
         Lookup lookup = lookupDao.findById(id);
         if(lookup == null){
+            log.error("Lookup with ID :  "+id+" not found");
             throw new RuntimeException("Lookup with ID :  "+id+" not found");
         }
         lookupDao.delete(lookup);
@@ -66,8 +76,13 @@ public class LookupServiceImpl implements LookupService {
 
     @Override
     public Lookup findById(Long id) {
+        if (id == null) {
+            log.error("Lookup id is null");
+            throw new RuntimeException("Lookup id is null ");
+        }
         Lookup lookup = lookupDao.findById(id);
         if(lookup == null){
+            log.error("Lookup with ID :  "+id+" not found");
             throw new RuntimeException("Lookup with ID :  "+id+" not found");
         }
         return lookup;
@@ -75,20 +90,16 @@ public class LookupServiceImpl implements LookupService {
 
     @Override
     public List<Lookup> findAll() {
-        List<Lookup> lookups = lookupDao.findAll();
-        if(lookups == null){
-            throw new RuntimeException("Lookups is null or empty");
-        }
-        return lookups;
+        return  lookupDao.findAll();
     }
 
     @Override
     public List<Lookup> findByCategory(String category) {
-        List<Lookup> lookups = lookupDao.findByCategory(category);
-        if(lookups == null){
-            throw new RuntimeException("Lookups for Category :  "+category+" not found");
+        if(category == null || category.isEmpty()){
+            log.error("Category is null or empty");
+            throw new RuntimeException("Category is null or empty");
         }
-        return lookups;
+        return lookupDao.findByCategory(category);
     }
 
     @Override

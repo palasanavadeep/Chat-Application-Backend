@@ -7,17 +7,16 @@ import com.navadeep.ChatApplication.domain.User;
 import com.navadeep.ChatApplication.domain.UserLite;
 import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import java.util.List;
 
 public class UserServiceImpl implements UserService {
 
-    private UserDao userDao;
-    private UserLiteDao userLiteDao;
-    private AttachmentService attachmentService;
-    private final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    private final UserDao userDao;
+    private final UserLiteDao userLiteDao;
+    private final AttachmentService attachmentService;
+    private final Log log = LogFactory.getLog(UserServiceImpl.class);
 
     public UserServiceImpl(UserDao userDao, UserLiteDao userLiteDao,AttachmentService attachmentService) {
         this.userDao = userDao;
@@ -26,6 +25,7 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    // unused method
     @Override
     public User save(User user) {
         return userDao.save(user);
@@ -39,6 +39,7 @@ public class UserServiceImpl implements UserService {
         if(username != null){
             UserLite existingUser = userLiteDao.findByUsername(username);
             if(existingUser != null && !existingUser.getId().equals(userId)){
+                log.error("Username already exists for username: "+username);
                 throw new RuntimeException("username "+username+" is already taken");
             }
             user.setUsername(username);
@@ -55,20 +56,19 @@ public class UserServiceImpl implements UserService {
             user.setProfileImage(profileImageAttachment);
         }
 
-        User updatedUser = userDao.update(user);
-        if(updatedUser == null){
-            throw new RuntimeException("something went wrong");
-        }
-        return updatedUser;
+        return userDao.update(user);
     }
 
 
     @Override
     public void delete(Long id) {
-
+        if (id == null) {
+            log.error("can't delete ID is null");
+            throw new RuntimeException("ID cannot be null");
+        }
         User user = userDao.findById(id);
         if(user == null){
-            log.warn("User : {} not found",id);
+            log.error("User : ["+id+"] not found");
             throw new RuntimeException("user with id "+id+" not found");
         }
         userDao.delete(user);
@@ -78,7 +78,7 @@ public class UserServiceImpl implements UserService {
     public UserLite findById(Long id) {
         UserLite user = userLiteDao.findById(id);
         if(user == null){
-            log.warn("User :{} not found",id);
+            log.error("User : ["+id+"]not found");
             throw new RuntimeException("User with ID :  "+id+" not found");
         }
         return user;
@@ -91,6 +91,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserLite findByUsername(String username) {
+        if (username == null || username.isEmpty()) {
+            log.error("username is null or empty");
+            throw new RuntimeException("username cannot be null or empty");
+        }
         return userLiteDao.findByUsername(username);
     }
 
@@ -98,7 +102,7 @@ public class UserServiceImpl implements UserService {
     public User getUserProfileById(Long id) {
         User user = userDao.findById(id);
         if(user == null){
-            log.warn("User: {} not found",id);
+            log.error("User: ["+id+"]not found");
             throw new RuntimeException("User with ID :  "+id+" not found");
         }
         return user;

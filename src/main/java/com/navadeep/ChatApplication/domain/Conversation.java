@@ -14,20 +14,6 @@ public class Conversation extends  BaseDate{
     private UserLite createdBy;
     private List<ConversationParticipant> conversationParticipants;
     private Message lastMessage;
-
-    @Override
-    public String toString() {
-        return "Conversation{" +
-                "type=" + type +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", conversationImage=" + conversationImage +
-                ", createdBy=" + createdBy +
-                ", lastMessage=" + lastMessage +
-                ", hasUnreadMessages=" + hasUnreadMessages +
-                '}';
-    }
-
     private boolean hasUnreadMessages;
 
     public boolean isHasUnreadMessages() {
@@ -94,5 +80,18 @@ public class Conversation extends  BaseDate{
 
     public void setLastMessage(Message lastMessage) {
         this.lastMessage = lastMessage;
+    }
+
+    @Override
+    public String toString() {
+        return "Conversation{" +
+                "type=" + type +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", conversationImage=" + conversationImage +
+                ", createdBy=" + createdBy +
+                ", lastMessage=" + lastMessage +
+                ", hasUnreadMessages=" + hasUnreadMessages +
+                '}';
     }
 }

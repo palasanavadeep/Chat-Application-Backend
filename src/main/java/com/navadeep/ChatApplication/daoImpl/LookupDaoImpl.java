@@ -30,7 +30,7 @@ public class LookupDaoImpl extends BaseDaoImpl<Lookup> implements LookupDao {
 
             return session.createQuery(cq).getResultList();
         } catch (HibernateException e) {
-            log.error("Error Message :: {}",e.getMessage(),e);
+            log.error("findByCategory("+category+") :: "+e.getMessage(),e);
             return null;
         }
     }
@@ -49,7 +49,7 @@ public class LookupDaoImpl extends BaseDaoImpl<Lookup> implements LookupDao {
             return session.createQuery(cq).uniqueResultOptional().orElse(null);
         }
         catch (HibernateException e) {
-            log.error("Error Message :: {}",e.getMessage(),e);
+            log.error("findByCode("+code+") :: "+e.getMessage(),e);
             return null;
         }
     }

@@ -33,8 +33,7 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
             }
             tx.commit();
         } catch (HibernateException e) {
-            System.out.println("Error in Adding Participant : " + e.getMessage());
-            log.error("Error in Adding Participant : {}",participant,e);
+            log.error("Error in Adding Participant : "+participant,e);
             if (tx != null) tx.rollback();
             throw e;
         }
@@ -50,14 +49,12 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
             session.merge(participant);
             tx.commit();
         } catch (Exception e) {
-            System.out.println("Error in removing participant : " + e.getMessage());
-            log.error("Error in removing participant : {}",participantId,e);
+            log.error("Error in removing participant : "+participantId,e);
             if (tx != null) tx.rollback();
             throw e;
         }
     }
 
-//    check if userId's participant is not leftAt also
     @Override
     public List<Conversation> findUserConversations(Long userId) {
         try(Session session = sessionFactory.openSession()){
@@ -105,7 +102,7 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
 
             return session.createQuery(cq).getResultList();
         } catch (HibernateException e) {
-            log.error("Error in findAllParticipants :: ",e);
+            log.error("Error in findAllParticipants for ConversationId :: "+conversationId,e);
             return Collections.emptyList();
         }
     }

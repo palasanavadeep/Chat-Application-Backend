@@ -11,17 +11,6 @@ public class Message extends BaseDate {
     private Long editedAt;
 
 
-    @Override
-    public String toString() {
-        return "Message{" +
-                "sender=" + sender +
-                ", conversationId=" + conversationId +
-                ", body='" + body + '\'' +
-                ", attachment=" + attachment +
-                ", editedAt=" + editedAt +
-                '}';
-    }
-
     public Message() {}
     public UserLite getSender() {
         return sender;
@@ -61,5 +50,16 @@ public class Message extends BaseDate {
 
     public void setEditedAt(Long editedAt) {
         this.editedAt = editedAt;
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "sender=" + sender +
+                ", conversationId=" + conversationId +
+                ", body='" + body + '\'' +
+                ", attachment=" + attachment +
+                ", editedAt=" + editedAt +
+                '}';
     }
 }

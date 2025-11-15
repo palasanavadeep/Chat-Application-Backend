@@ -5,15 +5,12 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
 
-    <changeSet id="load-lookup-data" author="navadeep">
-        <loadData
+    <changeSet id="load-lookup-data" author="navadeep" runOnChange="true">
+        <loadUpdateData
                 file="data/lookups.csv"
                 tableName="lookups"
-                separator=",">
-            <column name="lookup_category" type="STRING"/>
-            <column name="lookup_code" type="STRING"/>
-            <column name="lookup_name" type="STRING"/>
-        </loadData>
+                primaryKey="lookup_code"
+                />
     </changeSet>
 
 </databaseChangeLog>
