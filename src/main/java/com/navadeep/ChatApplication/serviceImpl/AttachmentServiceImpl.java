@@ -3,6 +3,9 @@ package com.navadeep.ChatApplication.serviceImpl;
 
 import com.navadeep.ChatApplication.dao.AttachmentDao;
 import com.navadeep.ChatApplication.domain.Attachment;
+import com.navadeep.ChatApplication.exception.BadRequestException;
+import com.navadeep.ChatApplication.exception.InternalServerException;
+import com.navadeep.ChatApplication.exception.NotFoundException;
 import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.LookupService;
 import com.navadeep.ChatApplication.utils.Constants;
@@ -27,45 +30,68 @@ public class AttachmentServiceImpl implements AttachmentService {
     public Attachment save(String fileName,byte[] file) {
         if(file==null || file.length==0){
             log.error("file not found ");
-            throw new RuntimeException("file is null or empty");
+            throw new BadRequestException("file is null or empty");
         }
         String fileType = getFileType(fileName);
         Attachment attachment = new Attachment();
         attachment.setAttachmentType(lookupService.findByLookupCode(fileType));
         attachment.setFile(file);
-        return attachmentDao.save(attachment);
+
+        try{
+            return attachmentDao.save(attachment);
+        }catch (Exception e){
+            log.error("Failed to save attachment: " + e.getMessage(), e);
+            throw new InternalServerException("Failed to save attachment");
+        }
     }
 
     @Override
     public Attachment update(Attachment attachment) {
         if (attachment == null || attachment.getId() == null) {
             log.error("attachment or attachmentId is null");
-            throw new IllegalArgumentException("Attachment and ID cannot be null");
+            throw new BadRequestException("Attachment and ID cannot be null");
         }
-        return attachmentDao.update(attachment);
+        try{
+            return attachmentDao.update(attachment);
+        }catch (Exception e){
+            log.error("Failed to update attachment: " + e.getMessage(), e);
+            throw new InternalServerException("Failed to update attachment");
+        }
     }
 
     @Override
     public void delete(Long id) {
         if (id == null) {
             log.error("can't delete ID is null");
-            throw new IllegalArgumentException("ID cannot be null");
+            throw new BadRequestException("ID cannot be null");
         }
         Attachment attachment = attachmentDao.findById(id);
         if(attachment == null) {
             log.error("attachment with id {} not found "+id);
-            throw new IllegalArgumentException("Attachment not found for Id :"+id);
+            throw new NotFoundException("Attachment not found for Id :"+id);
         }
-        attachmentDao.delete(attachment);
+        try{
+            attachmentDao.delete(attachment);
+        }
+        catch (Exception e){
+            log.error("Failed to delete attachment: " + e.getMessage(), e);
+            throw new InternalServerException("Failed to delete attachment");
+        }
     }
 
     @Override
     public Attachment findById(Long id) {
         if (id == null) {
             log.error("id is null");
-            throw new IllegalArgumentException("ID cannot be null");
+            throw new BadRequestException("ID cannot be null");
         }
-        return attachmentDao.findById(id);
+        Attachment attachment = attachmentDao.findById(id);
+        if (attachment == null) {
+            log.error("Attachment not found: " + id);
+            throw new NotFoundException("Attachment not found for ID: " + id);
+        }
+
+        return attachment;
     }
 
     @Override
@@ -73,8 +99,8 @@ public class AttachmentServiceImpl implements AttachmentService {
         try {
             return attachmentDao.findAll();
         } catch (Exception e) {
-            log.error("Error Message : "+e.getMessage(), e);
-            throw new RuntimeException("Failed to find all attachments", e);
+            log.error("Failed to fetch attachments: " + e.getMessage(), e);
+            throw new InternalServerException("Failed to fetch attachments");
         }
     }
 
@@ -102,16 +128,10 @@ public class AttachmentServiceImpl implements AttachmentService {
         }
     }
 
-    // Helper function to extract the file extension
+    // Helper function :: Extracts file extension from filename
     private static String getFileExtension(String fileName) {
-        // Ensure the file name is not null or empty
-        if (fileName == null || fileName.isEmpty()) {
-            return "";
-        }
-        int lastDotIndex = fileName.lastIndexOf('.');
-        if (lastDotIndex == -1) {
-            return "";  // No extension found
-        }
-        return fileName.substring(lastDotIndex + 1);
+        if (fileName == null || fileName.isEmpty()) return "";
+        int lastDot = fileName.lastIndexOf('.');
+        return lastDot == -1 ? "" : fileName.substring(lastDot + 1);
     }
 }

@@ -4,6 +4,7 @@ import com.navadeep.ChatApplication.dao.MessageReceiptDao;
 import com.navadeep.ChatApplication.domain.Lookup;
 import com.navadeep.ChatApplication.domain.Message;
 import com.navadeep.ChatApplication.domain.MessageReceipt;
+import com.navadeep.ChatApplication.utils.Constants;
 import jakarta.persistence.criteria.*;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -46,7 +47,7 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
         try (Session session = sessionFactory.openSession()) {
 
             tx = session.beginTransaction();
-            int batchSize = 50;
+            int batchSize = Constants.BATCH_SIZE;
             for (int i = 0; i < receipts.size(); i++) {
                 session.merge(receipts.get(i));
                 if (i % batchSize == 0) {
@@ -63,8 +64,8 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
     }
 
     @Override
-    public List<MessageReceipt> findByUserIdAndMessageIds(Long userId, List<Long> lastMessageIds) {
-        if (lastMessageIds == null || lastMessageIds.isEmpty()) return Collections.emptyList();
+    public List<MessageReceipt> findByUserIdAndMessageIds(Long userId, List<Long> messageIds) {
+        if (messageIds == null || messageIds.isEmpty()) return Collections.emptyList();
 
         try(Session session = sessionFactory.openSession()){
 
@@ -72,15 +73,15 @@ public class MessageReceiptDaoImpl extends BaseDaoImpl<MessageReceipt> implement
             CriteriaQuery<MessageReceipt> cq = cb.createQuery(MessageReceipt.class);
             Root<MessageReceipt> root = cq.from(MessageReceipt.class);
 
-            Fetch<MessageReceipt, Message> messageFetch = root.fetch("message", JoinType.INNER);
-            Fetch<MessageReceipt, Lookup> statusFetch = root.fetch("status", JoinType.LEFT);
+//            Fetch<MessageReceipt, Message> messageFetch = root.fetch("message", JoinType.INNER);
+//            Fetch<MessageReceipt, Lookup> statusFetch = root.fetch("status", JoinType.LEFT);
 
             cq.select(root)
                     .distinct(true)
                     .where(
                             cb.and(
                                     cb.equal(root.get("userId"), userId),
-                                    root.get("message").get("id").in(lastMessageIds)
+                                    root.get("message").get("id").in(messageIds)
                             )
                     );
 

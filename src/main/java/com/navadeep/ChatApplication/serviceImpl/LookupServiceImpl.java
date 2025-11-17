@@ -1,15 +1,16 @@
 package com.navadeep.ChatApplication.serviceImpl;
 
 import com.navadeep.ChatApplication.dao.LookupDao;
-import com.navadeep.ChatApplication.daoImpl.LookupDaoImpl;
 import com.navadeep.ChatApplication.domain.Lookup;
+
+import com.navadeep.ChatApplication.exception.BadRequestException;
+import com.navadeep.ChatApplication.exception.NotFoundException;
+import com.navadeep.ChatApplication.exception.ConflictException;
+import com.navadeep.ChatApplication.exception.InternalServerException;
+
 import com.navadeep.ChatApplication.service.LookupService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 
 import java.util.List;
 
@@ -17,97 +18,129 @@ public class LookupServiceImpl implements LookupService {
 
     private final LookupDao lookupDao;
     Log log = LogFactory.getLog(LookupServiceImpl.class);
+
     public LookupServiceImpl(LookupDao lookupDao) {
         this.lookupDao = lookupDao;
     }
 
     @Override
-    public Lookup save(String name,String category, String code) {
-        if(category == null || code == null || category.isEmpty() || code.isEmpty()){
-            log.error("Category or code is null or code is empty");
-            throw new RuntimeException("Category or code is null or empty");
+    public Lookup save(String name, String category, String code) {
+
+        if (category == null || code == null) {
+            log.error("Category or code is NULL");
+            throw new BadRequestException("Category or code cannot be NULL");
         }
 
-        Lookup checkCode = lookupDao.findByCode(code);
-        if(checkCode != null
-                && checkCode.getLookupCode().equals(code)
-                && checkCode.getLookupCategory().equals(category)){
-            log.error("Code is already exist");
-            throw new RuntimeException("Code is already exist");
+        Lookup existing = lookupDao.findByCode(code);
+        if (existing != null &&
+                existing.getLookupCode().equals(code) &&
+                existing.getLookupCategory().equals(category)) {
+            log.error("Lookup code already exists");
+            throw new ConflictException("Lookup code already exists");
         }
 
-        Lookup newLookup = new Lookup();
-        newLookup.setLookupCategory(category);
-        newLookup.setLookupCode(code);
-        newLookup.setLookupName(name);
+        Lookup lookup = new Lookup();
+        lookup.setLookupCategory(category);
+        lookup.setLookupCode(code);
+        lookup.setLookupName(name);
 
-        return lookupDao.save(newLookup);
-
+        try {
+            return lookupDao.save(lookup);
+        } catch (Exception e) {
+            log.error("Failed to save lookup: " + e.getMessage(), e);
+            throw new InternalServerException("Failed to save lookup");
+        }
     }
 
     @Override
     public Lookup update(Lookup lookup) {
-        if(lookup == null || lookup.getId() == null){
-            log.error("Lookup id is null or lookupId is null");
-            throw new RuntimeException("Lookup id is null or empty");
+        if (lookup == null || lookup.getId() == null) {
+            log.error("Lookup or ID is null");
+            throw new BadRequestException("Lookup or ID cannot be null");
         }
 
-        if(lookup.getLookupCategory() == null || lookup.getLookupCode() == null){
-            log.error("Lookup category or code is null or empty");
-            throw new RuntimeException("Lookup code is null or empty");
+        if (lookup.getLookupCategory() == null || lookup.getLookupCode() == null) {
+            log.error("Lookup category or code missing");
+            throw new BadRequestException("Lookup category or code cannot be null");
         }
 
-        return lookupDao.update(lookup);
+        try {
+            return lookupDao.update(lookup);
+        } catch (Exception e) {
+            log.error("Failed to update lookup: " + e.getMessage(), e);
+            throw new InternalServerException("Failed to update lookup");
+        }
     }
 
     @Override
     public void delete(Long id) {
         if (id == null) {
-            log.error("Lookup id is null");
-            throw new RuntimeException("Lookup id is null or empty");
+            log.error("Lookup ID is null");
+            throw new BadRequestException("ID cannot be null");
         }
+
         Lookup lookup = lookupDao.findById(id);
-        if(lookup == null){
-            log.error("Lookup with ID :  "+id+" not found");
-            throw new RuntimeException("Lookup with ID :  "+id+" not found");
+        if (lookup == null) {
+            log.error("Lookup not found: " + id);
+            throw new NotFoundException("Lookup not found for ID: " + id);
         }
-        lookupDao.delete(lookup);
+
+        try {
+            lookupDao.delete(lookup);
+        } catch (Exception e) {
+            log.error("Failed to delete lookup: " + e.getMessage(), e);
+            throw new InternalServerException("Failed to delete lookup");
+        }
     }
 
     @Override
     public Lookup findById(Long id) {
         if (id == null) {
-            log.error("Lookup id is null");
-            throw new RuntimeException("Lookup id is null ");
+            log.error("Lookup ID is null");
+            throw new BadRequestException("ID cannot be null");
         }
+
         Lookup lookup = lookupDao.findById(id);
-        if(lookup == null){
-            log.error("Lookup with ID :  "+id+" not found");
-            throw new RuntimeException("Lookup with ID :  "+id+" not found");
+        if (lookup == null) {
+            log.error("Lookup not found: " + id);
+            throw new NotFoundException("Lookup not found for ID: " + id);
         }
+
         return lookup;
     }
 
     @Override
     public List<Lookup> findAll() {
-        return  lookupDao.findAll();
+        try {
+            return lookupDao.findAll();
+        } catch (Exception e) {
+            log.error("Failed to fetch lookups: " + e.getMessage(), e);
+            throw new InternalServerException("Failed to fetch lookups");
+        }
     }
 
     @Override
     public List<Lookup> findByCategory(String category) {
-        if(category == null || category.isEmpty()){
-            log.error("Category is null or empty");
-            throw new RuntimeException("Category is null or empty");
+        if (category == null || category.isEmpty()) {
+            log.error("Category is empty");
+            throw new BadRequestException("Category cannot be empty");
         }
+
         return lookupDao.findByCategory(category);
     }
 
     @Override
     public Lookup findByLookupCode(String lookupCode) {
-        Lookup lookup = lookupDao.findByCode(lookupCode.toUpperCase());
-        if(lookup == null){
-            throw new RuntimeException("Lookup code :  "+lookupCode+" not found");
+        if (lookupCode == null || lookupCode.isEmpty()) {
+            throw new BadRequestException("Lookup code cannot be empty");
         }
+
+        Lookup lookup = lookupDao.findByCode(lookupCode.toUpperCase());
+        if (lookup == null) {
+            log.error("Lookup code not found: " + lookupCode);
+            throw new NotFoundException("Lookup code not found: " + lookupCode);
+        }
+
         return lookup;
     }
 }

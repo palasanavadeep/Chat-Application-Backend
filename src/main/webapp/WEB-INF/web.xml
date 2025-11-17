@@ -35,35 +35,4 @@
     <url-pattern>/api/*</url-pattern>
   </servlet-mapping>
 
-<!--    <filter>-->
-<!--        <filter-name>CorsFilter</filter-name>-->
-<!--        <filter-class>org.apache.cxf.jaxrs.cors.CrossOriginResourceSharingFilter</filter-class>-->
-<!--        <init-param>-->
-<!--            <param-name>allowOrigins</param-name>-->
-<!--            <param-value>*</param-value>   &lt;!&ndash; change to your domain in prod &ndash;&gt;-->
-<!--        </init-param>-->
-<!--        <init-param>-->
-<!--            <param-name>allowCredentials</param-name>-->
-<!--            <param-value>true</param-value>-->
-<!--        </init-param>-->
-<!--        <init-param>-->
-<!--            <param-name>allowedHeaders</param-name>-->
-<!--            <param-value>Origin,Content-Type,Accept,Authorization,X-Requested-With</param-value>-->
-<!--        </init-param>-->
-<!--        <init-param>-->
-<!--            <param-name>allowedMethods</param-name>-->
-<!--            <param-value>GET,POST,PUT,DELETE,OPTIONS</param-value>-->
-<!--        </init-param>-->
-<!--        <init-param>-->
-<!--            <param-name>maxAge</param-name>-->
-<!--            <param-value>86400</param-value>-->
-<!--        </init-param>-->
-<!--    </filter>-->
-<!--    <filter-mapping>-->
-<!--        <filter-name>CorsFilter</filter-name>-->
-<!--        <url-pattern>/api/*</url-pattern>-->
-<!--&lt;!&ndash;        <dispatcher>REQUEST</dispatcher>&ndash;&gt;-->
-<!--&lt;!&ndash;        <dispatcher>FORWARD</dispatcher>&ndash;&gt;-->
-<!--    </filter-mapping>-->
-
 </web-app>

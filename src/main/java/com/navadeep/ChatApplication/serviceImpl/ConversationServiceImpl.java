@@ -3,6 +3,9 @@ package com.navadeep.ChatApplication.serviceImpl;
 
 import com.navadeep.ChatApplication.dao.*;
 import com.navadeep.ChatApplication.domain.*;
+import com.navadeep.ChatApplication.exception.BadRequestException;
+import com.navadeep.ChatApplication.exception.ForbiddenException;
+import com.navadeep.ChatApplication.exception.NotFoundException;
 import com.navadeep.ChatApplication.netty.SessionManager;
 import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.*;
@@ -45,7 +48,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         if(type == null || type.isEmpty()){
             log.error("type is null or empty");
-            throw new IllegalArgumentException("type is null or empty");
+            throw new BadRequestException("type is null or empty");
         }
 
         UserLite creator = userLiteDao.findById(userId);
@@ -71,7 +74,7 @@ public class ConversationServiceImpl implements ConversationService {
         if(type.equalsIgnoreCase(Constants.CONVERSATION_TYPE_GROUP)){
             if(name == null || name.isEmpty()){
                 log.error("name is null or empty");
-                throw new IllegalArgumentException("name is null or empty");
+                throw new BadRequestException("name is null or empty");
             }
             newConversation.setName(name);
             if(!description.isEmpty()){
@@ -116,18 +119,18 @@ public class ConversationServiceImpl implements ConversationService {
 
         if(conversationId == null){
             log.error("conversationId is null");
-            throw new IllegalArgumentException("conversationId is null");
+            throw new BadRequestException("conversationId is null");
         }
 
         ConversationParticipant checkIfParticipant = conversationParticipantService.findByConversationAndUserId(conversationId,userId);
         if(checkIfParticipant == null){
             log.error("User : "+userId+" is not in the conversation"+conversationId);
-            throw new IllegalArgumentException("You are not allowed to update this conversation");
+            throw new ForbiddenException("You are not allowed to update this conversation");
         }
 
         if(!checkIfParticipant.getRole().getLookupCode().equals(Constants.ROLE_ADMIN)){
             log.error("User : "+userId+" is not allowed to update this conversation");
-            throw new RuntimeException("UserId: "+userId+" not allowed to update this conversation");
+            throw new ForbiddenException("UserId: "+userId+" not allowed to update this conversation");
         }
 
         Conversation conversationToUpdate = conversationDao.findById(conversationId);
@@ -168,12 +171,12 @@ public class ConversationServiceImpl implements ConversationService {
     public void updateLastMessage(Long conversationId,Message message) {
         if(conversationId == null || message == null){
             log.error("conversationId or message is null");
-            throw new IllegalArgumentException("conversationId and message is null");
+            throw new BadRequestException("conversationId and message is null");
         }
         Conversation conversation = conversationDao.findById(conversationId);
         if(conversation == null){
             log.error("conversation not found");
-            throw new IllegalArgumentException("conversation is not found");
+            throw new NotFoundException("conversation is not found");
         }
         conversation.setLastMessage(message);
         conversationDao.update(conversation);
@@ -188,7 +191,7 @@ public class ConversationServiceImpl implements ConversationService {
     public List<Conversation> getUserConversations(Long userId) {
         if(userId == null){
             log.error("userId is null");
-            throw new IllegalArgumentException("userId is null");
+            throw new BadRequestException("userId is null");
         }
         // Fetch user conversations
         List<Conversation> conversations = conversationDao.findUserConversations(userId);
@@ -253,7 +256,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         if(newUserId==null || userId==null || conversationId==null) {
             log.error("newUserId or conversationId is null");
-            throw new IllegalArgumentException("newUserId or conversationId is null");
+            throw new BadRequestException("newUserId or conversationId is null");
         }
 
         ConversationParticipant conversationParticipant = conversationParticipantService
@@ -261,12 +264,12 @@ public class ConversationServiceImpl implements ConversationService {
 
         if(conversationParticipant == null){
             log.error("User : "+userId+" is not in the conversation"+conversationId);
-            throw new IllegalArgumentException("User : "+userId+" is not in the conversation"+conversationId);
+            throw new ForbiddenException("User : "+userId+" is not in the conversation"+conversationId);
         }
 
         if(!conversationParticipant.getRole().getLookupCode().equals(Constants.ROLE_ADMIN)){
             log.error("Unauthorized access :: Role : "+conversationParticipant.getRole().getLookupCode());
-            throw new RuntimeException("UserId: "+userId+" not allowed to add participant to this conversation");
+            throw new ForbiddenException("UserId: "+userId+" not allowed to add participant to this conversation");
         }
 
         ConversationParticipant checkIfParticipant = conversationParticipantService.findByConversationAndUserId(conversationId,newUserId);
@@ -321,7 +324,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         if(checkIfParticipant == null){
             log.error("User : "+userId+" is not in the conversation"+participantId);
-            throw new IllegalArgumentException("Participant with id : "+participantId+" not found");
+            throw new NotFoundException("Participant with id : "+participantId+" not found");
         }
         Long conversationId = checkIfParticipant.getConversationId();
 
@@ -329,7 +332,7 @@ public class ConversationServiceImpl implements ConversationService {
 
         if(!isAdminParticipant.getRole().getLookupCode().equals(Constants.ROLE_ADMIN)){
             log.error("Unauthorized access :: Role : "+isAdminParticipant.getRole().getLookupCode());
-            throw new RuntimeException("UserId: "+userId+" not allowed to remove participant from this conversation");
+            throw new ForbiddenException("UserId: "+userId+" not allowed to remove participant from this conversation");
         }
 
         conversationDao.removeParticipant(conversationId,participantId);
@@ -361,7 +364,7 @@ public class ConversationServiceImpl implements ConversationService {
     public List<ConversationParticipant> getAllParticipants(Long conversationId) {
         if (conversationId == null) {
             log.error("ConversationId is null");
-            throw new IllegalArgumentException("conversationId is null");
+            throw new BadRequestException("conversationId is null");
         }
         return conversationDao.getAllParticipants(conversationId);
     }
@@ -372,7 +375,7 @@ public class ConversationServiceImpl implements ConversationService {
         ConversationParticipant participant = conversationParticipantService.findByConversationAndUserId(conversationId,userId);
         if(participant == null){
             log.error("User : "+userId+" is not in the conversation"+conversationId);
-            throw new IllegalArgumentException("User : "+userId+" is not in the conversation"+conversationId);
+            throw new NotFoundException("User : "+userId+" is not in the conversation"+conversationId);
         }
         if(participant.getUser().getId().equals(userId)){
             participant.setLeftAt(System.currentTimeMillis());
@@ -396,6 +399,9 @@ public class ConversationServiceImpl implements ConversationService {
             sessionManager.broadcast(removedParticipantResponse,participantUserIds);
 
             log.info("User : "+userId+" has left the conversation"+conversationId);
+        }else{
+            log.error("User : "+userId+" is not allowed to leave this conversation");
+            throw new ForbiddenException("UserId: "+userId+" not allowed to leave this conversation");
         }
     }
 
@@ -403,13 +409,13 @@ public class ConversationServiceImpl implements ConversationService {
     public Conversation findById(Long id) {
         if(id == null){
             log.error("ConversationId is null");
-            throw new IllegalArgumentException("id is null");
+            throw new BadRequestException("id is null");
         }
         Conversation conversation = conversationDao.findById(id);
 
         if(conversation == null){
             log.error("conversation not found");
-            throw new IllegalArgumentException("conversation is not found");
+            throw new NotFoundException("conversation is not found");
         }
 
         conversation.setConversationParticipants(

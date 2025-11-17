@@ -17,7 +17,7 @@
 <!--    </bean>-->
     <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
         <property name="driverClassName" value="org.postgresql.Driver"/>
-        <property name="jdbcUrl" value="jdbc:postgresql://localhost:5432/chatAppDB3"/>
+        <property name="jdbcUrl" value="jdbc:postgresql://localhost:5432/chatAppDB4"/>
         <property name="username" value="postgres"/>
         <property name="password" value="1234"/>
 

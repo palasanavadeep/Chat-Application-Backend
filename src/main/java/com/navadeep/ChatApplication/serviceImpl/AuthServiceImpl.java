@@ -7,13 +7,13 @@ import com.navadeep.ChatApplication.daoImpl.UserLiteDaoImpl;
 import com.navadeep.ChatApplication.domain.Attachment;
 import com.navadeep.ChatApplication.domain.User;
 import com.navadeep.ChatApplication.domain.UserLite;
+import com.navadeep.ChatApplication.exception.*;
 import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.AuthService;
 import com.navadeep.ChatApplication.utils.JwtUtil;
 import com.navadeep.ChatApplication.utils.ApiResponse;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import java.util.Map;
 
 
@@ -39,12 +39,12 @@ public class AuthServiceImpl implements AuthService {
         User user = userDao.findByUsername(username);
         if(user == null){
             log.error("User with username not found"+username);
-            throw new RuntimeException("user with "+username+" not found");
+            throw new BadRequestException("user with "+username+" not found");
         }
 
         if(!user.getPassword().equals(password)){
             log.error("Password Mismatch for User {}"+username);
-            throw new RuntimeException("Credentials didn't match! Try again..");
+            throw new UnauthorizedException("Credentials didn't match! Try again..");
         }
 
         String token = jwtUtil.generateToken(user.getId().toString());  // generate token from JWT util.
@@ -61,13 +61,13 @@ public class AuthServiceImpl implements AuthService {
 
         if(user.getPassword().length() < 6){
             log.error("Weak Password for User {}"+user.getUsername());
-            throw new RuntimeException("password length is less than 6");
+            throw new BadRequestException("password length is less than 6");
         }
         // check if username already exist
         UserLite checkUsername = userLiteDao.findByUsername(user.getUsername());
         if(checkUsername != null){
             log.error("User with Username {} already exists"+user.getUsername());
-            throw new RuntimeException("username already is exist");
+            throw new ConflictException("username already is exist");
         }
 
         if(file != null && fileName != null){
@@ -79,9 +79,15 @@ public class AuthServiceImpl implements AuthService {
         user.setLastSeenAt(System.currentTimeMillis());
         user.setStatus(true);
 
-        User newRegisteredUser = userDao.save(user);
-        if(newRegisteredUser == null){
-            throw new RuntimeException("something went wrong");
+        User newRegisteredUser;
+        try{
+            newRegisteredUser = userDao.save(user);
+            if(newRegisteredUser == null){
+                throw new InternalServerException("something went wrong");
+            }
+        }catch (Exception e){
+            log.error("Error saving user: " + e.getMessage(), e);
+            throw new InternalServerException("Registration failed");
         }
 
         String token = jwtUtil.generateToken(user.getId().toString());
@@ -99,12 +105,17 @@ public class AuthServiceImpl implements AuthService {
         UserLite user = userLiteDao.findById(userId);
         if(user == null){
             log.error("User with id {} not found"+userId);
-            throw new RuntimeException("user not found");
+            throw new NotFoundException("user not found");
         }
         user.setLastSeenAt(System.currentTimeMillis());
         user.setStatus(false);
 
-        userLiteDao.update(user);
+        try{
+            userLiteDao.update(user);
+        }catch (Exception e){
+            log.error("Error updating user status: " + e.getMessage(), e);
+            throw new InternalServerException("Logout failed");
+        }
     }
 
 }

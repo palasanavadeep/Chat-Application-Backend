@@ -13,5 +13,7 @@ public interface Constants {
     String ATTACHMENT_TYPE_IMAGE = "IMAGE";
     String ATTACHMENT_TYPE_FILE = "FILE";
 
+    int BATCH_SIZE = 50;
+
 
 }

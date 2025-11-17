@@ -84,7 +84,6 @@ public class ConversationDaoImpl extends BaseDaoImpl<Conversation> implements Co
     }
 
 
-    // can optimize from conversationParticipants (Native SQL)
     @Override
     public List<ConversationParticipant> getAllParticipants(Long conversationId) {
         try (Session session = sessionFactory.openSession()) {

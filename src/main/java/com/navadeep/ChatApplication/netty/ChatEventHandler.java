@@ -1,8 +1,10 @@
 package com.navadeep.ChatApplication.netty;
 
 import com.navadeep.ChatApplication.domain.*;
+import com.navadeep.ChatApplication.exception.NotFoundException;
 import com.navadeep.ChatApplication.service.*;
 import com.navadeep.ChatApplication.utils.Constants;
+import com.navadeep.ChatApplication.utils.WS_ACTION;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import java.util.ArrayList;
@@ -239,7 +241,8 @@ public class ChatEventHandler {
     public void getUserConversationsHandler(Long userId,MessageFrame msg) {
         try{
             List<Conversation> conversations = conversationService.getUserConversations(userId);
-            WsResponse wsResponse = WsResponse.success("getUserConversationsResponse", conversations);
+            WsResponse wsResponse = WsResponse
+                    .success(WS_ACTION.GET_USER_CONVERSATIONS_RESPONSE, conversations);
             sessionManager.broadcast(wsResponse,List.of(userId));
             log.info("User conversations fetched successfully for userId: "+userId);
         }
@@ -260,7 +263,8 @@ public class ChatEventHandler {
 
             Conversation conversation = conversationService.findById(conversationId);
 
-            WsResponse wsResponse = WsResponse.success("getConversationResponse", conversation);
+            WsResponse wsResponse = WsResponse
+                    .success(WS_ACTION.GET_CONVERSATION_RESPONSE, conversation);
             sessionManager.broadcast(wsResponse,List.of(userId));
 
             log.info("User conversation fetched successfully for conversationId: "+conversationId);
@@ -277,7 +281,8 @@ public class ChatEventHandler {
     public void getProfileHandler(Long userId,MessageFrame msg) {
         try{
             User user = userService.getUserProfileById(userId);
-            WsResponse wsResponse = WsResponse.success("getProfileResponse", user);
+            WsResponse wsResponse = WsResponse
+                    .success(WS_ACTION.GET_PROFILE_RESPONSE, user);
             sessionManager.broadcast(wsResponse,List.of(userId));
 
             log.info("User profile fetched successfully for userId: "+userId);
@@ -300,7 +305,8 @@ public class ChatEventHandler {
                 List<Message> conversationMessages = messageService
                         .getMessageByConversationId(userId,conversationId);
 
-                WsResponse wsResponse = WsResponse.success("getAllMessagesResponse",
+                WsResponse wsResponse = WsResponse
+                        .success(WS_ACTION.GET_ALL_MESSAGES_RESPONSE,
                         Map.of("conversationId" , conversationId,"messages", conversationMessages));
                 sessionManager.broadcast(wsResponse,List.of(userId));
 
@@ -364,7 +370,8 @@ public class ChatEventHandler {
 
             User updatedUser = userService.update(userId,newUsername,newDisplayName,newEmail,profileImageFile,fileName);
 
-            WsResponse wsResponse = WsResponse.success("updateProfileResponse", updatedUser);
+            WsResponse wsResponse = WsResponse
+                    .success(WS_ACTION.UPDATE_PROFILE_RESPONSE, updatedUser);
             sessionManager.broadcast(wsResponse,List.of(userId));
 
             log.info("User profile updated successfully for userId: "+userId);
@@ -382,10 +389,6 @@ public class ChatEventHandler {
         try{
             Map<String, Object> data = msg.getData();
             Long conversationId = data.get("conversationId") != null ? Long.parseLong(data.get("conversationId").toString()) : null;
-
-            if(conversationId == null) {
-                throw new IllegalArgumentException("Conversation ID is required to leave a conversation.");
-            }
 
             conversationService.leaveConversation(userId,conversationId);
 
@@ -408,9 +411,10 @@ public class ChatEventHandler {
             if(username != null){
                 userResult = userService.findByUsername(username);
                 if(userResult == null){
-                    throw new RuntimeException("User with username : "+username+" not found");
+                    throw new NotFoundException("User with username : "+username+" not found");
                 }
-                WsResponse wsResponse = WsResponse.success("searchUserResponse", List.of(userResult));
+                WsResponse wsResponse = WsResponse
+                        .success(WS_ACTION.SEARCH_USER_RESPONSE, List.of(userResult));
                 sessionManager.broadcast(wsResponse,List.of(userId));
             }
             log.info("UserId: "+userId+" searched username: "+username);

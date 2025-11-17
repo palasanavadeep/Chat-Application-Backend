@@ -28,4 +28,11 @@ public interface WS_ACTION {
     String REMOVED_CONVERSATION = "removedConversation";
     String NEW_MESSAGE = "newMessage";
     String DELETED_MESSAGE = "deletedMessage";
+    String EDITED_MESSAGE = "editedMessage";
+    String GET_USER_CONVERSATIONS_RESPONSE = "getUserConversationsResponse";
+    String GET_CONVERSATION_RESPONSE = "getConversationResponse";
+    String GET_PROFILE_RESPONSE = "getProfileResponse";
+    String GET_ALL_MESSAGES_RESPONSE = "getAllMessagesResponse";
+    String UPDATE_PROFILE_RESPONSE = "updateProfileResponse";
+    String SEARCH_USER_RESPONSE = "searchUserResponse";
 }

@@ -5,6 +5,9 @@ import com.navadeep.ChatApplication.dao.UserLiteDao;
 import com.navadeep.ChatApplication.domain.Attachment;
 import com.navadeep.ChatApplication.domain.User;
 import com.navadeep.ChatApplication.domain.UserLite;
+import com.navadeep.ChatApplication.exception.BadRequestException;
+import com.navadeep.ChatApplication.exception.ConflictException;
+import com.navadeep.ChatApplication.exception.NotFoundException;
 import com.navadeep.ChatApplication.service.AttachmentService;
 import com.navadeep.ChatApplication.service.UserService;
 import org.apache.commons.logging.Log;
@@ -25,11 +28,6 @@ public class UserServiceImpl implements UserService {
     }
 
 
-    // unused method
-    @Override
-    public User save(User user) {
-        return userDao.save(user);
-    }
 
     @Override
     public User update(Long userId,String username,String displayName,String email, byte[] file, String fileName) {
@@ -40,7 +38,7 @@ public class UserServiceImpl implements UserService {
             UserLite existingUser = userLiteDao.findByUsername(username);
             if(existingUser != null && !existingUser.getId().equals(userId)){
                 log.error("Username already exists for username: "+username);
-                throw new RuntimeException("username "+username+" is already taken");
+                throw new ConflictException("username "+username+" is already taken");
             }
             user.setUsername(username);
         }
@@ -64,12 +62,12 @@ public class UserServiceImpl implements UserService {
     public void delete(Long id) {
         if (id == null) {
             log.error("can't delete ID is null");
-            throw new RuntimeException("ID cannot be null");
+            throw new BadRequestException("ID cannot be null");
         }
         User user = userDao.findById(id);
         if(user == null){
             log.error("User : ["+id+"] not found");
-            throw new RuntimeException("user with id "+id+" not found");
+            throw new NotFoundException("user with id "+id+" not found");
         }
         userDao.delete(user);
     }
@@ -79,7 +77,7 @@ public class UserServiceImpl implements UserService {
         UserLite user = userLiteDao.findById(id);
         if(user == null){
             log.error("User : ["+id+"]not found");
-            throw new RuntimeException("User with ID :  "+id+" not found");
+            throw new NotFoundException("User with ID :  "+id+" not found");
         }
         return user;
     }
@@ -93,7 +91,7 @@ public class UserServiceImpl implements UserService {
     public UserLite findByUsername(String username) {
         if (username == null || username.isEmpty()) {
             log.error("username is null or empty");
-            throw new RuntimeException("username cannot be null or empty");
+            throw new BadRequestException("username cannot be null or empty");
         }
         return userLiteDao.findByUsername(username);
     }
@@ -103,7 +101,7 @@ public class UserServiceImpl implements UserService {
         User user = userDao.findById(id);
         if(user == null){
             log.error("User: ["+id+"]not found");
-            throw new RuntimeException("User with ID :  "+id+" not found");
+            throw new NotFoundException("User with ID :  "+id+" not found");
         }
         return user;
     }

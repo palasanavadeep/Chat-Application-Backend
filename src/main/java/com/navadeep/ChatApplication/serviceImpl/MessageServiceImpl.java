@@ -3,6 +3,10 @@ package com.navadeep.ChatApplication.serviceImpl;
 
 import com.navadeep.ChatApplication.dao.MessageDao;
 import com.navadeep.ChatApplication.domain.*;
+import com.navadeep.ChatApplication.exception.BadRequestException;
+import com.navadeep.ChatApplication.exception.ForbiddenException;
+import com.navadeep.ChatApplication.exception.InternalServerException;
+import com.navadeep.ChatApplication.exception.NotFoundException;
 import com.navadeep.ChatApplication.netty.SessionManager;
 import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.*;
@@ -96,7 +100,7 @@ public class MessageServiceImpl implements MessageService {
                 tx.rollback();
             }
             log.error(e.getMessage(),e);
-            return null;
+            throw new InternalServerException("Failed to send message",e);
         }
     }
 
@@ -104,17 +108,17 @@ public class MessageServiceImpl implements MessageService {
     public Message editMessage(Long userId,Long messageId, String newMessageContent) {
         if (messageId == null) {
             log.error("messageId is null");
-            throw new RuntimeException("messageId cannot be null");
+            throw new BadRequestException("messageId cannot be null");
         }
         Message message = messageDao.findById(messageId);
         if (message == null) {
             log.error("Message with id ["+messageId+"] not found");
-            throw new RuntimeException("Message with ID : "+messageId+" not found");
+            throw new NotFoundException("Message with ID : "+messageId+" not found");
         }
 
         if(!message.getSender().getId().equals(userId)){
             log.error("user : ["+userId+"] don't have permission to edit this message");
-            throw new RuntimeException("Only Sender can edit this Message"+messageId);
+            throw new ForbiddenException("Only Sender can edit this Message"+messageId);
         }
 
         message.setBody(newMessageContent);
@@ -126,7 +130,7 @@ public class MessageServiceImpl implements MessageService {
 
 
         // broadcast to participants (participants)
-        WsResponse wsResponse = WsResponse.success("editedMessage",updatedMessage);
+        WsResponse wsResponse = WsResponse.success(WS_ACTION.EDITED_MESSAGE,updatedMessage);
 //        participants.add(userId);
         sessionManager.broadcast(wsResponse,participants);
 
@@ -138,14 +142,14 @@ public class MessageServiceImpl implements MessageService {
     public void deleteMessageForMe(Long userId, Long messageId) {
         if (messageId == null) {
             log.error("messageId is null");
-            throw new RuntimeException("messageId cannot be null");
+            throw new BadRequestException("messageId cannot be null");
         }
         MessageReceipt myReceipt = messageReceiptService
                 .findByUserIdAndMessageId(userId, messageId);
 
         if(myReceipt == null){
             log.error("MessageReceipt with messageID : "+messageId+" and userId: "+userId+" not found");
-            throw new RuntimeException("MessageReceipt with messageID : "+messageId+" and userId: "+userId+" not found");
+            throw new NotFoundException("MessageReceipt with messageID : "+messageId+" and userId: "+userId+" not found");
         }
 
         myReceipt.setStatus(lookupService.findByLookupCode(MESSAGE_STATUS.DELETED));
@@ -164,20 +168,20 @@ public class MessageServiceImpl implements MessageService {
     public void deleteMessageForEveryone(Long userId, Long messageId, Long conversationId) {
         if (messageId == null || conversationId == null) {
             log.error("messageId or conversationId is null");
-            throw new RuntimeException("messageId and conversationId cannot be null");
+            throw new BadRequestException("messageId and conversationId cannot be null");
         }
         ConversationParticipant conversationParticipant = conversationParticipantService
                 .findByConversationAndUserId(conversationId, userId);
         if(conversationParticipant == null){
             log.error("User : ["+userId+"] is not a participant of conversation "+conversationId);
-            throw new RuntimeException("You are not allowed to delete this message");
+            throw new ForbiddenException("You are not allowed to delete this message");
         }
 
         if(!conversationParticipant.getRole().getLookupCode().equals(Constants.ROLE_ADMIN)){
             Message message = messageDao.findById(messageId);
             if(message != null && !message.getSender().getId().equals(userId)){
                 log.error("user : ["+userId+"] don't have permission to delete this message : "+messageId);
-                throw new RuntimeException("Only Admins and Senders can delete a message for everyone");
+                throw new ForbiddenException("Only Admins and Senders can delete a message for everyone");
             }
         }
 
@@ -203,7 +207,15 @@ public class MessageServiceImpl implements MessageService {
     public List<Message> getMessageByConversationId(Long userId, Long conversationId) {
         if(conversationId == null){
             log.error("conversationId is null");
-            throw new RuntimeException("conversationId cannot be null");
+            throw new BadRequestException("conversationId cannot be null");
+        }
+
+        ConversationParticipant participant = conversationParticipantService
+                .findByConversationAndUserId(conversationId, userId);
+
+        if(participant == null){
+            log.error("User : ["+userId+"] is not a participant of conversation "+conversationId);
+            throw new ForbiddenException("You are not allowed to access messages of this conversation");
         }
 
         return messageDao.findByConversationId(userId,conversationId);

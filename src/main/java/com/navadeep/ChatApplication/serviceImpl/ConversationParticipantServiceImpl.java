@@ -3,6 +3,10 @@ package com.navadeep.ChatApplication.serviceImpl;
 
 import com.navadeep.ChatApplication.dao.ConversationParticipantDao;
 import com.navadeep.ChatApplication.domain.ConversationParticipant;
+import com.navadeep.ChatApplication.exception.BadRequestException;
+import com.navadeep.ChatApplication.exception.ForbiddenException;
+import com.navadeep.ChatApplication.exception.NotFoundException;
+import com.navadeep.ChatApplication.exception.UnauthorizedException;
 import com.navadeep.ChatApplication.netty.SessionManager;
 import com.navadeep.ChatApplication.netty.WsResponse;
 import com.navadeep.ChatApplication.service.ConversationParticipantService;
@@ -35,14 +39,14 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
     public ConversationParticipant update(Long userId,Long participantId,Boolean isMuted,Boolean isPinned) {
         if(userId == null || participantId == null){
             log.error("userId :["+userId+"] or participantId : ["+participantId+"] can't be null");
-            throw new NullPointerException("userId or participant is null");
+            throw new BadRequestException("userId or participant is null");
         }
 
         ConversationParticipant conversationParticipant = conversationParticipantDao.findById(participantId);
 
         if(!conversationParticipant.getUser().getId().equals(userId)){
             log.error("userId :["+userId+"] can't update participantId : "+participantId);
-            throw new IllegalArgumentException("You are not allowed to update this participant.");
+            throw new ForbiddenException("You are not allowed to update this participant.");
         }
 
         if(isMuted != null){
@@ -61,13 +65,13 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
 
         if(userId == null || participantId == null || role == null){
             log.error("userId :["+userId+"] or participantId : ["+participantId+"]is NULL ");
-            throw new NullPointerException("userId or participantId or role or conversationId is null");
+            throw new BadRequestException("userId or participantId or role or conversationId is null");
         }
 
         ConversationParticipant participantToUpdate = conversationParticipantDao.findById(participantId);
         if(participantToUpdate == null){
             log.error("participantId : ["+participantId+"] is NOT FOUND");
-            throw  new IllegalArgumentException("Participant to update not found.");
+            throw  new NotFoundException("Participant to update not found.");
         }
 
         Long conversationId = participantToUpdate.getConversationId();
@@ -76,7 +80,7 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
 
         if(isAdminParticipant == null || !isAdminParticipant.getRole().getLookupCode().equals(Constants.ROLE_ADMIN)){
             log.error("userId :["+userId+"] or is NOT ADMIN");
-            throw new IllegalArgumentException("You are not allowed to update the role for a participant.");
+            throw new ForbiddenException("You are not allowed to update the role for a participant.");
         }
 
         participantToUpdate.setRole(lookupService.findByLookupCode(role));
@@ -98,7 +102,7 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
     public ConversationParticipant findByConversationAndUserId(Long conversationId, Long userId) {
         if(conversationId == null || userId == null){
             log.error("conversationId :["+conversationId+"] or userId : ["+userId+"] is NULL ");
-            throw new NullPointerException("conversationId or userId is null");
+            throw new BadRequestException("conversationId or userId is null");
         }
         return  conversationParticipantDao
                 .getParticipantByConversationIdAndUserId(conversationId, userId);
@@ -108,7 +112,7 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
     public List<Long> findParticipantUserIdsByConversationId(Long conversationId) {
         if(conversationId == null){
             log.error("conversationId  is NULL ");
-            throw new NullPointerException("conversationId is null");
+            throw new BadRequestException("conversationId is null");
         }
         return conversationParticipantDao.findParticipantUserIdsByConversationId(conversationId);
     }
@@ -118,12 +122,12 @@ public class ConversationParticipantServiceImpl implements ConversationParticipa
     public ConversationParticipant findById(Long id) {
         if(id == null){
             log.error("id is NULL ");
-            throw new NullPointerException("id is null");
+            throw new BadRequestException("id is null");
         }
         ConversationParticipant conversationParticipant = conversationParticipantDao.findById(id);
         if(conversationParticipant == null){
             log.error("ConversationParticipant Not Found");
-            throw new IllegalArgumentException("ConversationParticipant not found");
+            throw new NotFoundException("ConversationParticipant not found");
         }
 
         return conversationParticipant;
