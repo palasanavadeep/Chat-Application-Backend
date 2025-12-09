@@ -33,9 +33,10 @@ public class NettyWebSocketServer implements ApplicationContextAware {
     }
 
     public void start() {
+        int cores = Runtime.getRuntime().availableProcessors();
         new Thread(() -> {
-            bossGroup = new NioEventLoopGroup(1);
-            workerGroup = new NioEventLoopGroup();
+            bossGroup = new NioEventLoopGroup(3);
+            workerGroup = new NioEventLoopGroup(cores);
             try {
                 ServerBootstrap bootstrap = new ServerBootstrap();
                 bootstrap.group(bossGroup, workerGroup)

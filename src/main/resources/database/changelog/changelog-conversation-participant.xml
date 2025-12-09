@@ -33,7 +33,9 @@
                              references="lookups(id)"/>
             </column>
 
-            <column name="created_at" type="BIGINT"/>
+            <column name="created_at" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
             <column name="left_at" type="BIGINT"/>
 
             <column name="is_muted" type="BOOLEAN" defaultValueBoolean="false">

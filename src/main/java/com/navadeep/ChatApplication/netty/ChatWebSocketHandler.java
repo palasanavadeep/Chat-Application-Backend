@@ -14,6 +14,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
 
 public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
 
@@ -24,6 +25,7 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     private final ObjectMapper mapper;
     private final JwtUtil jwtUtil;
     private final Dispatcher dispatcher;
+    private final ExecutorService executor;
 
     private final StringBuilder frameBuffer = new StringBuilder(); // Buffer for fragmented frames
 
@@ -33,13 +35,16 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         this.mapper = (ObjectMapper) springContext.getBean("objectMapper");
         this.jwtUtil = (JwtUtil) springContext.getBean("jwtUtil");
         this.dispatcher = (Dispatcher) springContext.getBean("dispatcher");
+        this.executor = (ExecutorService) springContext.getBean("workerThreadExecutor");
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) {
+//        log.info("Received data: " + msg.toString());
         if (msg instanceof FullHttpRequest) {
             handleHandshake(ctx, (FullHttpRequest) msg);
         } else if (msg instanceof WebSocketFrame) {
+//            log.info("Received WebSocket frame: " + msg.toString());
             handleFrame(ctx, (WebSocketFrame) msg);
         }
     }
@@ -77,6 +82,8 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         handshaker.handshake(ctx.channel(), req);
         ctx.channel().attr(USER_ID_KEY).set(userId);
         sessionManager.addSession(userId, ctx);
+
+//        log.info("WebSocket handshake successful for userId: " + userId);
     }
 
     private void handleFrame(ChannelHandlerContext ctx, WebSocketFrame frame) {
@@ -109,16 +116,17 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
     }
 
     private void processCompleteMessage(ChannelHandlerContext ctx, String json) {
-        try {
-            MessageFrame msg = mapper.readValue(json, MessageFrame.class);
-            Long userId = Long.parseLong(ctx.channel().attr(USER_ID_KEY).get());
-            dispatcher.dispatch(userId, msg);
-
-        } catch (Exception e) {
-            log.error("JSON parse error: {}"+e.getMessage(), e);
-            WsResponse response = WsResponse.error("ERROR", "Invalid JSON or too large payload");
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-        }
+        executor.submit(()->{
+            try {
+                MessageFrame msg = mapper.readValue(json, MessageFrame.class);
+                Long userId = Long.parseLong(ctx.channel().attr(USER_ID_KEY).get());
+                dispatcher.dispatch(userId, msg);
+            } catch (Exception e) {
+                log.error("JSON parse error: {}"+e.getMessage(), e);
+                WsResponse response = WsResponse.error("ERROR", "Invalid JSON or too large payload");
+                ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+            }
+        });
     }
 
     private String getWebSocketURL(FullHttpRequest req) {
@@ -154,5 +162,6 @@ public class ChatWebSocketHandler extends SimpleChannelInboundHandler<Object> {
         log.error("Exception caught: "+cause.getMessage(), cause);
         WsResponse response = WsResponse.error(Constants.STATUS_ERROR, cause.getMessage());
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        ctx.close();
     }
 }

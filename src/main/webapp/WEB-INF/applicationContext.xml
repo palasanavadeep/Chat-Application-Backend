@@ -15,14 +15,35 @@
 <!--        <property name="username" value="postgres"/>-->
 <!--        <property name="password" value="1234"/>-->
 <!--    </bean>-->
+
+    <!-- Factory bean that will create the executor -->
+    <bean id="executorServiceFactory" class="com.navadeep.ChatApplication.utils.concurrency.ExecutorServiceFactory"/>
+
+    <!-- ExecutorService bean created via factory method -->
+<!--    <bean id="virtualThreadExecutor"-->
+<!--          factory-bean="executorServiceFactory"-->
+<!--          factory-method="createVirtualThreadExecutor"-->
+<!--          destroy-method="shutdown"/>-->
+    <bean id="workerThreadExecutor"
+          factory-bean="executorServiceFactory"
+          factory-method="createWorkerThreadPool"
+          destroy-method="shutdown"/>
+    <bean id="broadcastThreadExecutor"
+          factory-bean="executorServiceFactory"
+          factory-method="createBroadcastThreadPool"
+          destroy-method="shutdown"/>
+
     <bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
         <property name="driverClassName" value="org.postgresql.Driver"/>
-        <property name="jdbcUrl" value="jdbc:postgresql://localhost:5432/chatAppDB4"/>
+<!--        <property name="jdbcUrl" value="jdbc:postgresql://35.154.231.38:5432/chatappdb"/>-->
+<!--        <property name="username" value="navadeep"/>-->
+<!--        <property name="password" value="1234"/>-->
+        <property name="jdbcUrl" value="jdbc:postgresql://localhost:5432/chatAppTestDB"/>
         <property name="username" value="postgres"/>
         <property name="password" value="1234"/>
 
         <!-- Connection pool configuration -->
-        <property name="maximumPoolSize" value="10"/> <!-- Maximum number of connections in the pool -->
+        <property name="maximumPoolSize" value="15"/> <!-- Maximum number of connections in the pool -->
         <property name="minimumIdle" value="5"/> <!-- Minimum number of idle connections -->
         <property name="idleTimeout" value="600000"/> <!-- Time a connection can stay idle before being removed -->
         <property name="maxLifetime" value="1800000"/> <!-- Max lifetime of a connection in ms -->
@@ -58,7 +79,7 @@
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
-                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.show_sql">false</prop>
                 <prop key="hibernate.format_sql">false</prop>
                 <prop key="hibernate.connection.pool_size">5</prop>
                 <prop key="hbm2ddl.auto">validate</prop>
@@ -78,6 +99,7 @@
     <bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper"/>
     <bean id="sessionManager" class="com.navadeep.ChatApplication.netty.SessionManager">
         <property name="mapper" ref="objectMapper"/>
+        <property name="executor" ref="broadcastThreadExecutor"/>
     </bean>
 
     <!--    Dao Impl-->
@@ -179,9 +201,15 @@
     </bean>
 
     <!--    Rest API Beans-->
+    <bean id="loadTestDataGenerator" class="com.navadeep.ChatApplication.test.LoadTestDataGenerator">
+        <property name="lookupService" ref="lookupServiceImpl"/>
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
 
     <bean id="authController" class="com.navadeep.ChatApplication.controller.AuthControllerImpl">
         <constructor-arg name="authService" ref="authServiceImpl"/>
+        <constructor-arg name="loadTestDataGenerator" ref="loadTestDataGenerator"/>
     </bean>
+
 
 </beans>

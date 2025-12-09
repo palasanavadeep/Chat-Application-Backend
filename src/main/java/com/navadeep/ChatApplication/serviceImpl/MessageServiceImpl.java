@@ -5,7 +5,6 @@ import com.navadeep.ChatApplication.dao.MessageDao;
 import com.navadeep.ChatApplication.domain.*;
 import com.navadeep.ChatApplication.exception.BadRequestException;
 import com.navadeep.ChatApplication.exception.ForbiddenException;
-import com.navadeep.ChatApplication.exception.InternalServerException;
 import com.navadeep.ChatApplication.exception.NotFoundException;
 import com.navadeep.ChatApplication.netty.SessionManager;
 import com.navadeep.ChatApplication.netty.WsResponse;
@@ -15,9 +14,8 @@ import com.navadeep.ChatApplication.utils.MESSAGE_STATUS;
 import com.navadeep.ChatApplication.utils.WS_ACTION;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,10 +48,6 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Message sendMessage(Long senderId, Long conversationId, String messageContent, byte[] attachment,String attachmentName) {
-
-        Transaction tx = null;
-        try(Session session=sessionFactory.openSession()){
-            tx = session.beginTransaction();
 
             UserLite sender = userService.findById(senderId);
             Message newMessage = new Message();
@@ -92,16 +86,7 @@ public class MessageServiceImpl implements MessageService {
 
             messageReceiptService.saveOrUpdateMessageReceipts(messageReceipts);
 
-            tx.commit();
-
             return savedMessage;
-        }catch (Exception e){
-            if(tx!=null){
-                tx.rollback();
-            }
-            log.error(e.getMessage(),e);
-            throw new InternalServerException("Failed to send message",e);
-        }
     }
 
     @Override

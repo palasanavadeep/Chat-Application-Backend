@@ -2,6 +2,7 @@ package com.navadeep.ChatApplication.controller;
 
 import com.navadeep.ChatApplication.domain.User;
 import com.navadeep.ChatApplication.service.AuthService;
+import com.navadeep.ChatApplication.test.LoadTestDataGenerator;
 import com.navadeep.ChatApplication.utils.ApiResponse;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
@@ -15,10 +16,13 @@ import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 public class AuthControllerImpl implements  AuthController{
 
     private final AuthService authService;
+    private final LoadTestDataGenerator loadTestDataGenerator;
+
     private final Log log = LogFactory.getLog(AuthControllerImpl.class.getName());
 
-    public AuthControllerImpl(AuthService authService) {
+    public AuthControllerImpl(AuthService authService,LoadTestDataGenerator loadTestDataGenerator) {
         this.authService = authService;
+        this.loadTestDataGenerator = loadTestDataGenerator;
     }
 
     @Override
@@ -86,6 +90,12 @@ public class AuthControllerImpl implements  AuthController{
                     ))
                     .build();
         }
+    }
+
+    @POST
+    @Path("/generate")
+    public void loadTestData(){
+        loadTestDataGenerator.generate();
     }
 
 }

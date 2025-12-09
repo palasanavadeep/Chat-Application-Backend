@@ -45,7 +45,7 @@ public class MessageReceiptServiceImpl implements MessageReceiptService {
     @Override
     public void saveOrUpdateMessageReceipts(List<MessageReceipt> messageReceipts) {
         if (messageReceipts == null || messageReceipts.isEmpty()) {
-            log.error("messageReceipts is null or empty");
+            log.error("messageReceipts is null or empty"+messageReceipts);
             throw new BadRequestException("messageReceipts is null or empty");
         } else {
             messageReceiptDao.saveOrUpdateAll(messageReceipts);

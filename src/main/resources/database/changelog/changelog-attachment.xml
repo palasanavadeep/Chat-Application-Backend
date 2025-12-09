@@ -11,7 +11,7 @@
         <createSequence sequenceName="attachments_id_seq" startValue="1" incrementBy="1"/>
 
         <createTable tableName="attachments">
-            <column name="id" type="BIGINT" autoIncrement="true">
+            <column name="id" type="BIGINT" autoIncrement="true" >
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="attachment_type_id" type="BIGINT">

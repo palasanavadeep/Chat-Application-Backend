@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+    <changeSet id="create_indexes_V1" author="navadeep">
+        <!--User indexes-->
+        <createIndex indexName="idx_users_username" tableName="users" unique="true">
+            <column name="username"/>
+        </createIndex>
+
+        <createIndex indexName="idx_users_email" tableName="users">
+            <column name="email"/>
+        </createIndex>
+
+        <!--Conversation indexes-->
+
+        <createIndex tableName="conversations" indexName="idx_conversations_created_at">
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="conversations" indexName="idx_conversations_type">
+            <column name="type_id"/>
+        </createIndex>
+
+        <!--Conversation Participants indexes-->
+        <createIndex tableName="conversation_participants" indexName="idx_participants_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="conversation_participants" indexName="idx_participants_conversation_id">
+            <column name="conversation_id"/>
+        </createIndex>
+
+        <createIndex tableName="conversation_participants"
+                     indexName="idx_cp_user_conversation" unique="true">
+            <column name="user_id"/>
+            <column name="conversation_id"/>
+        </createIndex>
+
+<!--        <createIndex tableName="conversation_participants"-->
+<!--                     indexName="idx_cp_conv_left_at">-->
+<!--            <column name="conversation_id"/>-->
+<!--            <column name="left_at"/>-->
+<!--        </createIndex>-->
+
+        <!--Message indexes-->
+        <createIndex tableName="messages" indexName="idx_messages_conversation_id">
+            <column name="conversation_id"/>
+        </createIndex>
+
+        <createIndex tableName="messages" indexName="idx_messages_sender_id">
+            <column name="sender_id"/>
+        </createIndex>
+
+        <createIndex tableName="messages" indexName="idx_messages_created_at">
+            <column name="created_at"/>
+        </createIndex>
+
+
+        <!--Message Receipt indexes-->
+        <createIndex tableName="message_receipts" indexName="idx_mr_message">
+            <column name="message_id"/>
+        </createIndex>
+
+        <createIndex tableName="message_receipts" indexName="idx_mr_user_status">
+            <column name="user_id"/>
+            <column name="status_id"/>
+        </createIndex>
+
+        <createIndex tableName="message_receipts"
+                     indexName="idx_mr_msg_user" unique="true">
+            <column name="message_id"/>
+            <column name="user_id"/>
+        </createIndex>
+
+    </changeSet>
+    
+</databaseChangeLog>

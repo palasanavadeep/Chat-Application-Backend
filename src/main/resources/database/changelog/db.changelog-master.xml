@@ -15,11 +15,9 @@
     <include file="database/changelog/changelog-message.xml"/>
     <include file="database/changelog/changelog-message-receipt.xml"/>
     <include file="database/changelog/changelog-constraints.xml"/>
+    <include file="database/changelog/changelog-indexes.xml"/>
 
     <include file="/database/changelog/changelog-lookup-data.xml"/>
-
-
-
 
 
 </databaseChangeLog>
